@@ -1,297 +1,419 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rate Your Coworkers 💜</title>
+<h2>💜 Rate Your Coworkers 💜</h2>
 
-    <style>
-      body {
-        font-family: 'Poppins', sans-serif;
-        background: linear-gradient(135deg, #f3e8ff, #e0bbff);
-        min-height: 100vh;
-        margin: 0;
-        padding: 40px 20px;
-        color: #3b2066;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        overflow-x: hidden;
-      }
+<div id="coworker-list"></div>
 
-      h2 {
-        text-align: center;
-        font-size: 2rem;
-        color: #5c3c92;
-        margin-bottom: 30px;
-        text-shadow: 0 0 10px #e4c1f9;
-      }
+<div id="add-form">
+  <input type="text" id="new-name" placeholder="Enter coworker's name" />
+  <button id="add-button">Add</button>
+</div>
 
-      .coworker {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 5px 15px rgba(100, 0, 150, 0.1);
-        padding: 20px;
-        width: 100%;
-        max-width: 500px;
-        margin-bottom: 25px;
-        position: relative;
-        overflow: hidden;
-      }
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f3e8ff, #e0bbff);
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px 20px;
+    color: #3b2066;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+  }
 
-      .coworker::before {
-        content: '';
-        position: absolute;
-        top: -40px;
-        right: -40px;
-        width: 120px;
-        height: 120px;
-        background: rgba(200, 150, 255, 0.2);
-        border-radius: 50%;
-      }
+  h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: #5c3c92;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px #e4c1f9;
+  }
 
-      .coworker-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
+  .coworker {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 5px 15px rgba(100, 0, 150, 0.1);
+    padding: 20px;
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 25px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
 
-      .coworker-name {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #4b2a8b;
-      }
+  .coworker:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(100, 0, 150, 0.15);
+  }
 
-      .remove-btn {
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        color: #a58ad4;
-        cursor: pointer;
-        transition: color 0.2s;
-      }
+  .coworker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-      .remove-btn:hover {
-        color: #e76df6;
-      }
+  .coworker-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #4b2a8b;
+  }
 
-      .rating {
-        display: flex;
-        flex-direction: row-reverse;
-        justify-content: flex-start;
-        margin-top: 10px;
-      }
+  .remove-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #a58ad4;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
 
-      .rating input {
-        display: none;
-      }
+  .remove-btn:hover {
+    color: #e76df6;
+  }
 
-      .rating label {
-        font-size: 2.3rem;
-        color: #d2b5ff;
-        cursor: pointer;
-        transition: transform 0.2s, color 0.2s;
-        filter: drop-shadow(0 0 5px rgba(180, 120, 255, 0.2));
-      }
+  .rating {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
 
-      .rating label:hover,
-      .rating label:hover ~ label {
-        color: #c47bff;
-        transform: scale(1.2);
-      }
+  .rating input {
+    display: none;
+  }
 
-      .rating input:checked ~ label {
-        color: #9b59ff;
-      }
+  .rating label {
+    font-size: 2.3rem;
+    color: #d2b5ff;
+    cursor: pointer;
+    transition: transform 0.2s, color 0.2s;
+  }
 
-      #add-form {
-        display: flex;
-        justify-content: center;
-        margin-top: 40px;
-        gap: 10px;
-      }
+  .rating label:hover,
+  .rating label:hover ~ label {
+    color: #c47bff;
+    transform: scale(1.2);
+  }
 
-      #new-name {
-        padding: 10px;
-        font-size: 1rem;
-        border: 2px solid #d4b3ff;
-        border-radius: 10px;
-        outline: none;
-        width: 60%;
-      }
+  .rating input:checked ~ label {
+    color: #9b59ff;
+  }
 
-      #add-button {
-        background: #b57aff;
-        border: none;
-        color: white;
-        padding: 10px 20px;
-        font-size: 1rem;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: background 0.3s;
-      }
+  #add-form {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    gap: 10px;
+  }
 
-      #add-button:hover {
-        background: #9c5eff;
-      }
+  #new-name {
+    padding: 10px;
+    font-size: 1rem;
+    border: 2px solid #d4b3ff;
+    border-radius: 10px;
+    outline: none;
+    width: 60%;
+  }
 
-      .bubble {
-        position: absolute;
-        background: rgba(200, 150, 255, 0.25);
-        border-radius: 50%;
-        pointer-events: none;
-        animation: float 10s infinite ease-in-out;
-      }
+  #add-button {
+    background: #b57aff;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
 
-      @keyframes float {
-        from {
-          transform: translateY(0);
-          opacity: 1;
+  #add-button:hover {
+    background: #9c5eff;
+  }
+
+  .comments {
+    margin-top: 15px;
+    background: #f9f3ff;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .comment {
+    border-bottom: 1px solid #e0c9ff;
+    padding: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .comment strong {
+    color: #6d3ebf;
+  }
+
+  .comment small {
+    font-size: 0.75rem;
+    color: #a483cc;
+    display: block;
+  }
+
+  .comment-input {
+    display: flex;
+    margin-top: 8px;
+    gap: 8px;
+  }
+
+  .comment-input input {
+    flex: 1;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #d4b3ff;
+  }
+
+  .comment-input button {
+    background: #9b59ff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .delete-comment {
+    background: none;
+    border: none;
+    color: #b399d4;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+
+  .delete-comment:hover {
+    color: #ff5fa2;
+  }
+
+  .average {
+    margin-top: 8px;
+    font-weight: 500;
+    color: #5a339b;
+  }
+
+  .details {
+    margin-top: 5px;
+    font-size: 0.9rem;
+    color: #7d5ab0;
+    display: none;
+    padding-left: 10px;
+  }
+
+  .details.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .toggle-details {
+    color: #8f5ff7;
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-top: 3px;
+    font-size: 0.85rem;
+  }
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyChk9fLtZGP-cXSoFLhoTabr_gcEV_PXi0",
+    authDomain: "rate-your-co-worker.firebaseapp.com",
+    projectId: "rate-your-co-worker",
+    storageBucket: "rate-your-co-worker.appspot.com",
+    messagingSenderId: "78681057527",
+    appId: "1:78681057527:web:27e311cf3d0cc2618d4bf2",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const coworkerList = document.getElementById("coworker-list");
+  const addButton = document.getElementById("add-button");
+
+  let currentUser = localStorage.getItem("raterName");
+  if (!currentUser) {
+    currentUser = prompt("Enter your name:");
+    if (currentUser) localStorage.setItem("raterName", currentUser);
+  }
+
+  db.collection("coworkers").onSnapshot((snapshot) => {
+    coworkerList.innerHTML = "";
+    snapshot.forEach((doc) => createRating(doc.id, doc.data()));
+  });
+
+  async function saveCoworker(name, data) {
+    await db.collection("coworkers").doc(name).set(data);
+  }
+
+  async function deleteCoworker(name) {
+    if (!confirm(`Delete ${name}?`)) return;
+    await db.collection("coworkers").doc(name).delete();
+  }
+
+  function createRating(name, coworkerData = { ratings: {}, comments: [] }) {
+    const container = document.createElement("div");
+    container.className = "coworker";
+    container.dataset.name = name;
+
+    const header = document.createElement("div");
+    header.className = "coworker-header";
+
+    const nameDiv = document.createElement("div");
+    nameDiv.className = "coworker-name";
+    nameDiv.textContent = name;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "remove-btn";
+    removeBtn.textContent = "×";
+    removeBtn.onclick = () => deleteCoworker(name);
+
+    header.appendChild(nameDiv);
+    header.appendChild(removeBtn);
+    container.appendChild(header);
+
+    // Rating stars
+    const ratingDiv = document.createElement("div");
+    ratingDiv.className = "rating";
+    let currentRating = coworkerData.ratings?.[currentUser] || 0;
+
+    for (let i = 1; i <= 5; i++) {
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.id = `star${i}-${name}`;
+      input.name = `rating-${name}`;
+      input.value = i;
+      input.checked = currentRating === i;
+
+      const label = document.createElement("label");
+      label.htmlFor = input.id;
+      label.textContent = "★";
+
+      label.onclick = async () => {
+        if (currentRating === i) {
+          delete coworkerData.ratings[currentUser];
+        } else {
+          coworkerData.ratings[currentUser] = i;
         }
-        to {
-          transform: translateY(-100vh);
-          opacity: 0;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <h2>💜 Rate Your Coworkers 💜</h2>
-
-    <div id="coworker-list"></div>
-
-    <div id="add-form">
-      <input type="text" id="new-name" placeholder="Enter coworker's name" />
-      <button id="add-button">Add</button>
-    </div>
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
-
-    <script>
-      // 🪄 Your Firebase configuration
-      const firebaseConfig = {
-        apiKey: "AIzaSyChk9fLtZGP-cXSoFLhoTabr_gcEV_PXi0",
-        authDomain: "rate-your-co-worker.firebaseapp.com",
-        projectId: "rate-your-co-worker",
-        storageBucket: "rate-your-co-worker.appspot.com",
-        messagingSenderId: "78681057527",
-        appId: "1:78681057527:web:27e311cf3d0cc2618d4bf2",
-        measurementId: "G-0F6RPE33CP"
+        await saveCoworker(name, coworkerData);
       };
 
-      // Initialize Firebase
-      const app = firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
+      ratingDiv.appendChild(label);
+    }
 
-      const coworkerList = document.getElementById("coworker-list");
-      const addButton = document.getElementById("add-button");
+    container.appendChild(ratingDiv);
 
-      // Floating bubbles background
-      for (let i = 0; i < 15; i++) {
-        const bubble = document.createElement("div");
-        bubble.className = "bubble";
-        const size = Math.random() * 60 + 20;
-        bubble.style.width = size + "px";
-        bubble.style.height = size + "px";
-        bubble.style.left = Math.random() * 100 + "%";
-        bubble.style.bottom = "-100px";
-        bubble.style.animationDuration = 8 + Math.random() * 5 + "s";
-        document.body.appendChild(bubble);
+    // Average rating
+    const ratings = Object.values(coworkerData.ratings || {});
+    const avg = ratings.length
+      ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
+      : "No ratings";
+    const avgDiv = document.createElement("div");
+    avgDiv.className = "average";
+    avgDiv.textContent =
+      typeof avg === "string" ? avg : `⭐ ${avg} average from ${ratings.length} ratings`;
+
+    container.appendChild(avgDiv);
+
+    // Toggle for breakdown
+    if (ratings.length > 0) {
+      const toggle = document.createElement("button");
+      toggle.className = "toggle-details";
+      toggle.textContent = "Show who rated";
+      const details = document.createElement("div");
+      details.className = "details";
+
+      for (const [user, rating] of Object.entries(coworkerData.ratings)) {
+        const p = document.createElement("p");
+        p.textContent = `${user}: ${rating} ★`;
+        details.appendChild(p);
       }
 
-      // Load coworkers from Firestore
-      async function loadCoworkers() {
-        const snapshot = await db.collection("coworkers").get();
-        snapshot.forEach((doc) => {
-          createRating(doc.id, doc.data());
-        });
-      }
-
-      // Save coworker
-      async function saveCoworker(name, data) {
-        await db.collection("coworkers").doc(name).set(data);
-      }
-
-      // Delete coworker
-      async function deleteCoworker(name) {
-        const confirmDelete = confirm(`Are you sure you want to delete ${name}?`);
-        if (confirmDelete) {
-          await db.collection("coworkers").doc(name).delete();
-          document.querySelector(`[data-name="${name}"]`).remove();
-        }
-      }
-
-      function createRating(name, coworkerData = { ratings: {} }) {
-        const container = document.createElement("div");
-        container.className = "coworker";
-        container.dataset.name = name;
-
-        const header = document.createElement("div");
-        header.className = "coworker-header";
-
-        const nameDiv = document.createElement("div");
-        nameDiv.className = "coworker-name";
-        nameDiv.textContent = name;
-
-        const removeBtn = document.createElement("button");
-        removeBtn.className = "remove-btn";
-        removeBtn.textContent = "×";
-        removeBtn.onclick = () => deleteCoworker(name);
-
-        header.appendChild(nameDiv);
-        header.appendChild(removeBtn);
-        container.appendChild(header);
-
-        const ratingDiv = document.createElement("div");
-        ratingDiv.className = "rating";
-
-        let currentRating = coworkerData.ratings?.["You"] || 0;
-
-        for (let i = 5; i >= 1; i--) {
-          const input = document.createElement("input");
-          input.type = "radio";
-          input.id = `star${i}-${name}`;
-          input.name = `rating-${name}`;
-          input.value = i;
-
-          const label = document.createElement("label");
-          label.htmlFor = input.id;
-          label.textContent = "★";
-
-          input.checked = currentRating === i;
-
-          label.onclick = async () => {
-            if (currentRating === i) {
-              currentRating = 0;
-              input.checked = false;
-            } else {
-              currentRating = i;
-              input.checked = true;
-            }
-            coworkerData.ratings["You"] = currentRating;
-            await saveCoworker(name, coworkerData);
-          };
-
-          ratingDiv.appendChild(input);
-          ratingDiv.appendChild(label);
-        }
-
-        container.appendChild(ratingDiv);
-        coworkerList.appendChild(container);
-      }
-
-      addButton.onclick = async () => {
-        const input = document.getElementById("new-name");
-        const name = input.value.trim();
-        if (!name) return;
-        await saveCoworker(name, { ratings: {} });
-        createRating(name, { ratings: {} });
-        input.value = "";
+      toggle.onclick = () => {
+        details.classList.toggle("visible");
+        toggle.textContent = details.classList.contains("visible")
+          ? "Hide details"
+          : "Show who rated";
       };
 
-      loadCoworkers();
-    </script>
-  </body>
-</html>
+      container.appendChild(toggle);
+      container.appendChild(details);
+    }
+
+    // Comments
+    const commentsDiv = document.createElement("div");
+    commentsDiv.className = "comments";
+    const comments = coworkerData.comments || [];
+
+    comments.forEach((c, index) => {
+      const p = document.createElement("div");
+      p.className = "comment";
+      p.innerHTML = `<div><strong>${c.user}</strong> <small>${c.time}</small><br>${c.text}</div>`;
+
+      if (c.user === currentUser) {
+        const delBtn = document.createElement("button");
+        delBtn.className = "delete-comment";
+        delBtn.textContent = "🗑";
+        delBtn.onclick = async () => {
+          coworkerData.comments.splice(index, 1);
+          await saveCoworker(name, coworkerData);
+        };
+        p.appendChild(delBtn);
+      }
+
+      commentsDiv.appendChild(p);
+    });
+
+    const commentInputDiv = document.createElement("div");
+    commentInputDiv.className = "comment-input";
+
+    const commentInput = document.createElement("input");
+    commentInput.placeholder = "Write a comment...";
+
+    const commentButton = document.createElement("button");
+    commentButton.textContent = "Post";
+    commentButton.onclick = async () => {
+      const text = commentInput.value.trim();
+      if (!text) return;
+      coworkerData.comments.push({
+        user: currentUser,
+        text,
+        time: new Date().toLocaleString(),
+      });
+      await saveCoworker(name, coworkerData);
+    };
+
+    commentInputDiv.appendChild(commentInput);
+    commentInputDiv.appendChild(commentButton);
+    commentsDiv.appendChild(commentInputDiv);
+    container.appendChild(commentsDiv);
+
+    coworkerList.appendChild(container);
+  }
+
+  addButton.onclick = async () => {
+    const input = document.getElementById("new-name");
+    const name = input.value.trim();
+    if (!name) return;
+    await saveCoworker(name, { ratings: {}, comments: [] });
+    input.value = "";
+  };
+</script>
