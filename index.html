@@ -285,8 +285,7 @@
     <span id="profile-name">User</span>
   </div>
 
-  <!-- Login Page -->
-  <div id="login-page" class="login-container" style="display: none;">
+  <div id="login-page" class="login-container">
     <h2>💜 Sign In 💜</h2>
     <input type="email" id="login-email" placeholder="Email" />
     <input type="password" id="login-password" placeholder="Password" />
@@ -295,8 +294,7 @@
     <p>or <a href="#" id="signup-link">Create an account</a></p>
   </div>
 
-  <!-- Signup Page -->
-  <div id="signup-page" class="login-container" style="display: none;">
+  <div id="signup-page" class="login-container" style="display:none;">
     <h2>💜 Create Account 💜</h2>
     <input type="text" id="signup-display-name" placeholder="Display Name" />
     <input type="email" id="signup-email" placeholder="Email" />
@@ -306,8 +304,7 @@
     <p><a href="#" id="login-link">Back to Login</a></p>
   </div>
 
-  <!-- Main App -->
-  <div id="app" style="display: none;">
+  <div id="app" style="display:none;">
     <button id="profile-btn">Profile</button>
     <button id="logout-btn">Logout</button>
     <h2>💜 Rate Your Coworkers 💜</h2>
@@ -320,7 +317,6 @@
     </div>
   </div>
 
-  <!-- Profile Modal -->
   <div id="profile-modal" class="login-container" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;">
     <h2>💜 Profile Settings 💜</h2>
     <label style="display:block; margin-bottom:10px;">Choose an emoji avatar:</label>
@@ -432,7 +428,6 @@
       };
     });
 
-    // ✅ Fixed: Updates UI instantly when saving profile
     saveProfile.onclick = async () => {
       const user = auth.currentUser;
       const newName = document.getElementById("profile-display-name").value.trim();
@@ -448,7 +443,6 @@
 
       await userRef.set({ displayName: updatedName, emoji: updatedEmoji }, { merge: true });
 
-      // 🔄 Instantly update UI
       profileName.textContent = updatedName;
       profileEmoji.textContent = updatedEmoji;
 
@@ -481,16 +475,22 @@
     function startApp(currentUser, emoji) {
       const addButton = document.getElementById("add-button");
 
-      db.collection("coworkers").onSnapshot((snapshot) => {
-        coworkerList.innerHTML = "";
-        snapshot.forEach((doc) => createRating(doc.id, doc.data(), currentUser, emoji));
-      });
+      db.collection("coworkers")
+        .orderBy("createdAt", "desc")
+        .onSnapshot((snapshot) => {
+          coworkerList.innerHTML = "";
+          snapshot.forEach((doc) => createRating(doc.id, doc.data(), currentUser, emoji));
+        });
 
       addButton.onclick = async () => {
         const input = document.getElementById("new-name");
         const name = input.value.trim();
         if (!name) return;
-        await db.collection("coworkers").doc(name).set({ ratings: {}, comments: [] });
+        await db.collection("coworkers").doc(name).set({
+          ratings: {},
+          comments: [],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
         input.value = "";
       };
     }
@@ -518,7 +518,7 @@
 
       const removeBtn = document.createElement("button");
       removeBtn.className = "remove-btn";
-      removeBtn.textContent = "✖";
+      removeBtn.textContent = "×";
       removeBtn.onclick = () => deleteCoworker(name);
 
       header.appendChild(nameDiv);
@@ -527,93 +527,85 @@
 
       const ratingDiv = document.createElement("div");
       ratingDiv.className = "rating";
+      const ratings = coworkerData.ratings || {};
+
+      for (let i = 1; i <= 5; i++) {
+        const label = document.createElement("label");
+        label.textContent = "★";
+        label.dataset.value = i;
+        if (ratings[currentUser] === i) label.classList.add("active");
+
+        label.onclick = async () => {
+          ratings[currentUser] = i;
+          await saveCoworker(name, { ...coworkerData, ratings });
+        };
+
+        ratingDiv.appendChild(label);
+      }
+
       container.appendChild(ratingDiv);
+
+      const avg = document.createElement("div");
+      avg.className = "average";
+
+      const calcAverage = () => {
+        const values = Object.values(ratings);
+        if (!values.length) return "No ratings yet";
+        const average = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+        return `⭐ Average: ${average}`;
+      };
+
+      avg.textContent = calcAverage();
+      container.appendChild(avg);
 
       const commentsDiv = document.createElement("div");
       commentsDiv.className = "comments";
-      container.appendChild(commentsDiv);
 
-      const avgDisplay = document.createElement("div");
-      avgDisplay.className = "average";
-      container.appendChild(avgDisplay);
+      const renderComments = () => {
+        commentsDiv.innerHTML = "";
+        coworkerData.comments?.forEach((comment, idx) => {
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `<strong>${comment.emoji} ${comment.user}:</strong> ${comment.text} <small>${new Date(comment.time).toLocaleString()}</small>`;
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "🗑️";
+          delBtn.className = "delete-comment";
+          delBtn.onclick = async () => {
+            coworkerData.comments.splice(idx, 1);
+            await saveCoworker(name, coworkerData);
+          };
+          div.appendChild(delBtn);
+          commentsDiv.appendChild(div);
+        });
+      };
+
+      renderComments();
 
       const commentInput = document.createElement("div");
       commentInput.className = "comment-input";
       commentInput.innerHTML = `
-        <input type="text" placeholder="Add a comment...">
-        <button>Post</button>
+        <input type="text" placeholder="Add a comment..." />
+        <button>💬</button>
       `;
-      container.appendChild(commentInput);
 
-      coworkerList.appendChild(container);
-
-      const stars = [];
-      for (let i = 1; i <= 5; i++) {
-        const label = document.createElement("label");
-        label.innerHTML = "★";
-        label.dataset.value = i;
-        ratingDiv.appendChild(label);
-        stars.push(label);
-      }
-
-      stars.forEach((star, idx) => {
-        star.addEventListener("mouseenter", () => {
-          stars.forEach((s, i) => s.classList.toggle("hovered", i <= idx));
-        });
-        star.addEventListener("mouseleave", () => {
-          stars.forEach(s => s.classList.remove("hovered"));
-        });
-        star.addEventListener("click", async () => {
-          const data = coworkerData;
-          if (data.ratings[currentUser] === idx + 1) delete data.ratings[currentUser];
-          else data.ratings[currentUser] = idx + 1;
-          await saveCoworker(name, data);
-        });
-      });
-
-      function updateStars() {
-        const userRating = coworkerData.ratings[currentUser] || 0;
-        stars.forEach((s, i) => s.classList.toggle("active", i < userRating));
-        const values = Object.values(coworkerData.ratings);
-        const avg = values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : "N/A";
-        avgDisplay.textContent = `Average Rating: ⭐ ${avg}`;
-      }
-
-      function updateComments() {
-        commentsDiv.innerHTML = "";
-        coworkerData.comments.forEach((c, idx) => {
-          const div = document.createElement("div");
-          div.className = "comment";
-          div.innerHTML = `
-            <div><strong>${c.emoji} ${c.user}</strong>: ${c.text}</div>
-            ${c.user === currentUser ? `<button class='delete-comment'>🗑</button>` : ""}
-          `;
-          if (c.user === currentUser) {
-            div.querySelector(".delete-comment").onclick = async () => {
-              coworkerData.comments.splice(idx, 1);
-              await saveCoworker(name, coworkerData);
-            };
-          }
-          commentsDiv.appendChild(div);
-        });
-      }
-
-      commentInput.querySelector("button").onclick = async () => {
-        const text = commentInput.querySelector("input").value.trim();
+      const inputField = commentInput.querySelector("input");
+      const btn = commentInput.querySelector("button");
+      btn.onclick = async () => {
+        const text = inputField.value.trim();
         if (!text) return;
-        coworkerData.comments.push({ user: currentUser, emoji, text });
-        commentInput.querySelector("input").value = "";
+        coworkerData.comments.push({
+          user: currentUser,
+          emoji,
+          text,
+          time: new Date().toISOString(),
+        });
+        inputField.value = "";
         await saveCoworker(name, coworkerData);
       };
 
-      updateStars();
-      updateComments();
-
-      db.collection("coworkers").doc(name).onSnapshot((doc) => {
-        coworkerData = doc.data();
-        updateStars();
-        updateComments();
-      });
+      container.appendChild(commentsDiv);
+      container.appendChild(commentInput);
+      coworkerList.appendChild(container);
     }
   </script>
 </body>
