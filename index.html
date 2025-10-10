@@ -1,425 +1,620 @@
-<h2>💜 Rate Your Coworkers 💜</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>💜 Rate Your Coworkers 💜</title>
 
-<div id="coworker-list"></div>
-
-<div id="add-form">
-  <input type="text" id="new-name" placeholder="Enter coworker's name" />
-  <button id="add-button">Add</button>
-</div>
-
-<style>
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #f3e8ff, #e0bbff);
-    min-height: 100vh;
-    margin: 0;
-    padding: 40px 20px;
-    color: #3b2066;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: hidden;
-  }
-
-  h2 {
-    text-align: center;
-    font-size: 2rem;
-    color: #5c3c92;
-    margin-bottom: 30px;
-    text-shadow: 0 0 10px #e4c1f9;
-  }
-
-  .coworker {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 5px 15px rgba(100, 0, 150, 0.1);
-    padding: 20px;
-    width: 100%;
-    max-width: 500px;
-    margin-bottom: 25px;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .coworker:hover {
-    transform: scale(1.02);
-    box-shadow: 0 8px 20px rgba(100, 0, 150, 0.15);
-  }
-
-  .coworker-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .coworker-name {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: #4b2a8b;
-  }
-
-  .remove-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: #a58ad4;
-    cursor: pointer;
-    transition: color 0.2s;
-  }
-
-  .remove-btn:hover {
-    color: #e76df6;
-  }
-
-  .rating {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    margin-top: 10px;
-  }
-
-  .rating input {
-    display: none;
-  }
-
-  .rating label {
-    font-size: 2.3rem;
-    color: #d2b5ff;
-    cursor: pointer;
-    transition: transform 0.2s, color 0.2s;
-  }
-
-  /* ⭐ Highlight left to right */
-  .rating label:hover,
-  .rating label:hover ~ label {
-    color: #c47bff;
-    transform: scale(1.15);
-  }
-
-  .rating label.selected,
-  .rating label.selected ~ label {
-    color: #9b59ff;
-  }
-
-  #add-form {
-    display: flex;
-    justify-content: center;
-    margin-top: 40px;
-    gap: 10px;
-  }
-
-  #new-name {
-    padding: 10px;
-    font-size: 1rem;
-    border: 2px solid #d4b3ff;
-    border-radius: 10px;
-    outline: none;
-    width: 60%;
-  }
-
-  #add-button {
-    background: #b57aff;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    font-size: 1rem;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-
-  #add-button:hover {
-    background: #9c5eff;
-  }
-
-  .comments {
-    margin-top: 15px;
-    background: #f9f3ff;
-    border-radius: 10px;
-    padding: 10px;
-  }
-
-  .comment {
-    border-bottom: 1px solid #e0c9ff;
-    padding: 5px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .comment strong {
-    color: #6d3ebf;
-  }
-
-  .comment small {
-    font-size: 0.75rem;
-    color: #a483cc;
-    display: block;
-  }
-
-  .comment-input {
-    display: flex;
-    margin-top: 8px;
-    gap: 8px;
-  }
-
-  .comment-input input {
-    flex: 1;
-    padding: 6px;
-    border-radius: 6px;
-    border: 1px solid #d4b3ff;
-  }
-
-  .comment-input button {
-    background: #9b59ff;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  .delete-comment {
-    background: none;
-    border: none;
-    color: #b399d4;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-
-  .delete-comment:hover {
-    color: #ff5fa2;
-  }
-
-  .average {
-    margin-top: 8px;
-    font-weight: 500;
-    color: #5a339b;
-  }
-
-  .details {
-    margin-top: 5px;
-    font-size: 0.9rem;
-    color: #7d5ab0;
-    display: none;
-    padding-left: 10px;
-  }
-
-  .details.visible {
-    display: block;
-    animation: fadeIn 0.3s ease;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-5px);
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f3e8ff, #e0bbff);
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px 20px;
+      color: #3b2066;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
     }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+
+    h2 {
+      text-align: center;
+      font-size: 2rem;
+      color: #5c3c92;
+      margin-bottom: 30px;
+      text-shadow: 0 0 10px #e4c1f9;
     }
-  }
 
-  .toggle-details {
-    color: #8f5ff7;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-top: 3px;
-    font-size: 0.85rem;
-  }
-</style>
-
-<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyChk9fLtZGP-cXSoFLhoTabr_gcEV_PXi0",
-    authDomain: "rate-your-co-worker.firebaseapp.com",
-    projectId: "rate-your-co-worker",
-    storageBucket: "rate-your-co-worker.appspot.com",
-    messagingSenderId: "78681057527",
-    appId: "1:78681057527:web:27e311cf3d0cc2618d4bf2",
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const coworkerList = document.getElementById("coworker-list");
-  const addButton = document.getElementById("add-button");
-
-  let currentUser = localStorage.getItem("raterName");
-  if (!currentUser) {
-    currentUser = prompt("Enter your name:");
-    if (!currentUser || currentUser.trim() === "") {
-      alert("You must enter a name to use this site.");
-      location.reload();
-    } else {
-      localStorage.setItem("raterName", currentUser);
+    #logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #b57aff;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-  }
 
-  db.collection("coworkers").onSnapshot((snapshot) => {
-    coworkerList.innerHTML = "";
-    snapshot.forEach((doc) => createRating(doc.id, doc.data()));
-  });
+    #logout-btn:hover {
+      background: #9c5eff;
+    }
 
-  async function saveCoworker(name, data) {
-    await db.collection("coworkers").doc(name).set(data);
-  }
+    #profile-btn {
+      position: absolute;
+      top: 20px;
+      right: 110px;
+      background: #d7b2ff;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
 
-  async function deleteCoworker(name) {
-    if (!confirm(`Delete ${name}?`)) return;
-    await db.collection("coworkers").doc(name).delete();
-  }
+    #profile-btn:hover {
+      background: #c699ff;
+    }
 
-  function createRating(name, coworkerData = { ratings: {}, comments: [] }) {
-    const container = document.createElement("div");
-    container.className = "coworker";
-    container.dataset.name = name;
+    #profile-display {
+      position: absolute;
+      top: 22px;
+      left: 20px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 1rem;
+      color: #5c3c92;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(100,0,150,0.1);
+    }
 
-    const header = document.createElement("div");
-    header.className = "coworker-header";
+    .coworker {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(100, 0, 150, 0.1);
+      padding: 20px;
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 25px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-    const nameDiv = document.createElement("div");
-    nameDiv.className = "coworker-name";
-    nameDiv.textContent = name;
+    .coworker:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 20px rgba(100, 0, 150, 0.15);
+    }
 
-    const removeBtn = document.createElement("button");
-    removeBtn.className = "remove-btn";
-    removeBtn.textContent = "×";
-    removeBtn.onclick = () => deleteCoworker(name);
+    .coworker-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-    header.appendChild(nameDiv);
-    header.appendChild(removeBtn);
-    container.appendChild(header);
+    .coworker-name {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #4b2a8b;
+    }
 
-    const ratingDiv = document.createElement("div");
-    ratingDiv.className = "rating";
-    let currentRating = coworkerData.ratings?.[currentUser] || 0;
+    .remove-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #a58ad4;
+      cursor: pointer;
+    }
 
-    for (let i = 1; i <= 5; i++) {
-      const label = document.createElement("label");
-      label.textContent = "★";
-      if (i <= currentRating) label.classList.add("selected");
+    .remove-btn:hover {
+      color: #e76df6;
+    }
 
-      label.onclick = async () => {
-        const allLabels = ratingDiv.querySelectorAll("label");
-        allLabels.forEach((l) => l.classList.remove("selected"));
+    .rating {
+      display: flex;
+      justify-content: flex-start;
+      margin-top: 10px;
+      gap: 5px;
+    }
 
-        if (currentRating === i) {
-          delete coworkerData.ratings[currentUser];
-          currentRating = 0;
-        } else {
-          coworkerData.ratings[currentUser] = i;
-          currentRating = i;
-          for (let j = 0; j < i; j++) {
-            allLabels[j].classList.add("selected");
+    .rating label {
+      font-size: 2.3rem;
+      color: #d2b5ff;
+      cursor: pointer;
+      transition: transform 0.2s, color 0.2s;
+    }
+
+    .rating label.hovered,
+    .rating label.active {
+      color: #9b59ff;
+      transform: scale(1.1);
+    }
+
+    #add-form {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+      gap: 10px;
+    }
+
+    #new-name {
+      padding: 10px;
+      font-size: 1rem;
+      border: 2px solid #d4b3ff;
+      border-radius: 10px;
+      outline: none;
+      width: 60%;
+      transition: box-shadow 0.2s ease;
+    }
+
+    #new-name:focus {
+      box-shadow: 0 0 10px rgba(181, 122, 255, 0.4);
+    }
+
+    #add-button {
+      background: #b57aff;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #add-button:hover {
+      background: #9c5eff;
+    }
+
+    .comments {
+      margin-top: 15px;
+      background: #f9f3ff;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .comment {
+      border-bottom: 1px solid #e0c9ff;
+      padding: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .comment strong {
+      color: #6d3ebf;
+    }
+
+    .comment small {
+      font-size: 0.75rem;
+      color: #a483cc;
+    }
+
+    .comment-input {
+      display: flex;
+      margin-top: 8px;
+      gap: 8px;
+    }
+
+    .comment-input input {
+      flex: 1;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #d4b3ff;
+    }
+
+    .comment-input button {
+      background: #9b59ff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .delete-comment {
+      background: none;
+      border: none;
+      color: #b399d4;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .delete-comment:hover {
+      color: #ff5fa2;
+    }
+
+    .average {
+      margin-top: 8px;
+      font-weight: 500;
+      color: #5a339b;
+    }
+
+    .login-container {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 2px solid #d4b3ff;
+      border-radius: 10px;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .login-container button {
+      background: #b57aff;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .login-container button:hover {
+      background: #9c5eff;
+    }
+
+    .error-message {
+      color: #ff4d6d;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="profile-display" style="display:none;">
+    <span id="profile-emoji">😊</span>
+    <span id="profile-name">User</span>
+  </div>
+
+  <!-- Login Page -->
+  <div id="login-page" class="login-container" style="display: none;">
+    <h2>💜 Sign In 💜</h2>
+    <input type="email" id="login-email" placeholder="Email" />
+    <input type="password" id="login-password" placeholder="Password" />
+    <button id="login-button">Sign In</button>
+    <div id="login-error" class="error-message"></div>
+    <p>or <a href="#" id="signup-link">Create an account</a></p>
+  </div>
+
+  <!-- Signup Page -->
+  <div id="signup-page" class="login-container" style="display: none;">
+    <h2>💜 Create Account 💜</h2>
+    <input type="text" id="signup-display-name" placeholder="Display Name" />
+    <input type="email" id="signup-email" placeholder="Email" />
+    <input type="password" id="signup-password" placeholder="Password" />
+    <button id="signup-button">Sign Up</button>
+    <div id="signup-error" class="error-message"></div>
+    <p><a href="#" id="login-link">Back to Login</a></p>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" style="display: none;">
+    <button id="profile-btn">Profile</button>
+    <button id="logout-btn">Logout</button>
+    <h2>💜 Rate Your Coworkers 💜</h2>
+
+    <div id="coworker-list"></div>
+
+    <div id="add-form">
+      <input type="text" id="new-name" placeholder="Enter coworker's name" />
+      <button id="add-button">Add</button>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="login-container" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;">
+    <h2>💜 Profile Settings 💜</h2>
+    <label style="display:block; margin-bottom:10px;">Choose an emoji avatar:</label>
+    <div id="emoji-picker" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <span class="emoji-option" style="font-size:2rem; cursor:pointer;">😊</span>
+      <span class="emoji-option" style="font-size:2rem; cursor:pointer;">😎</span>
+      <span class="emoji-option" style="font-size:2rem; cursor:pointer;">🤩</span>
+      <span class="emoji-option" style="font-size:2rem; cursor:pointer;">🐱</span>
+      <span class="emoji-option" style="font-size:2rem; cursor:pointer;">🌸</span>
+      <span class="emoji-option" style="font-size:2rem; cursor:pointer;">🔥</span>
+    </div>
+
+    <input type="text" id="profile-display-name" placeholder="Enter new display name" style="margin-top:15px;">
+    <button id="save-profile" style="margin-top:15px;">Save</button>
+    <button id="close-profile" style="margin-top:10px; background:#e4c1f9; color:#3b2066;">Close</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyChk9fLtZGP-cXSoFLhoTabr_gcEV_PXi0",
+      authDomain: "rate-your-co-worker.firebaseapp.com",
+      projectId: "rate-your-co-worker",
+      storageBucket: "rate-your-co-worker.appspot.com",
+      messagingSenderId: "78681057527",
+      appId: "1:78681057527:web:27e311cf3d0cc2618d4bf2",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const loginPage = document.getElementById("login-page");
+    const signupPage = document.getElementById("signup-page");
+    const app = document.getElementById("app");
+    const coworkerList = document.getElementById("coworker-list");
+    const loginError = document.getElementById("login-error");
+    const signupError = document.getElementById("signup-error");
+    const profileModal = document.getElementById("profile-modal");
+    const emojiPicker = document.querySelectorAll(".emoji-option");
+    const saveProfile = document.getElementById("save-profile");
+    const closeProfile = document.getElementById("close-profile");
+    const profileDisplay = document.getElementById("profile-display");
+    const profileEmoji = document.getElementById("profile-emoji");
+    const profileName = document.getElementById("profile-name");
+    let selectedEmoji = null;
+
+    document.getElementById("signup-link").onclick = () => {
+      loginPage.style.display = "none";
+      signupPage.style.display = "block";
+    };
+
+    document.getElementById("login-link").onclick = () => {
+      signupPage.style.display = "none";
+      loginPage.style.display = "block";
+    };
+
+    document.getElementById("login-button").onclick = async () => {
+      loginError.textContent = "";
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (err) {
+        loginError.textContent = "❌ Incorrect email or password.";
+      }
+    };
+
+    document.getElementById("signup-button").onclick = async () => {
+      signupError.textContent = "";
+      const displayName = document.getElementById("signup-display-name").value.trim();
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+
+      if (!displayName) {
+        signupError.textContent = "⚠️ Please enter a display name.";
+        return;
+      }
+
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        await db.collection("users").doc(user.uid).set({ displayName, emoji: "😊" });
+      } catch (err) {
+        signupError.textContent = "⚠️ " + err.message;
+      }
+    };
+
+    document.getElementById("logout-btn").onclick = async () => {
+      await auth.signOut();
+    };
+
+    document.getElementById("profile-btn").onclick = () => {
+      profileModal.style.display = "block";
+    };
+
+    closeProfile.onclick = () => {
+      profileModal.style.display = "none";
+    };
+
+    emojiPicker.forEach(e => {
+      e.onclick = () => {
+        emojiPicker.forEach(em => em.style.border = "none");
+        e.style.border = "2px solid #b57aff";
+        selectedEmoji = e.textContent;
+      };
+    });
+
+    // ✅ Fixed: Updates UI instantly when saving profile
+    saveProfile.onclick = async () => {
+      const user = auth.currentUser;
+      const newName = document.getElementById("profile-display-name").value.trim();
+
+      if (!user) return alert("Not logged in!");
+      if (!newName && !selectedEmoji) return alert("Please enter a display name or choose an emoji!");
+
+      const userRef = db.collection("users").doc(user.uid);
+      const data = (await userRef.get()).data() || {};
+
+      const updatedName = newName || data.displayName;
+      const updatedEmoji = selectedEmoji || data.emoji || "😊";
+
+      await userRef.set({ displayName: updatedName, emoji: updatedEmoji }, { merge: true });
+
+      // 🔄 Instantly update UI
+      profileName.textContent = updatedName;
+      profileEmoji.textContent = updatedEmoji;
+
+      alert("✅ Profile updated!");
+      profileModal.style.display = "none";
+    };
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        loginPage.style.display = "none";
+        signupPage.style.display = "none";
+        app.style.display = "block";
+
+        const userDoc = await db.collection("users").doc(user.uid).get();
+        const userData = userDoc.data() || {};
+        const displayName = userData.displayName || user.email;
+        const emoji = userData.emoji || "😊";
+        profileDisplay.style.display = "flex";
+        profileEmoji.textContent = emoji;
+        profileName.textContent = displayName;
+        startApp(displayName, emoji);
+      } else {
+        loginPage.style.display = "block";
+        signupPage.style.display = "none";
+        app.style.display = "none";
+        profileDisplay.style.display = "none";
+      }
+    });
+
+    function startApp(currentUser, emoji) {
+      const addButton = document.getElementById("add-button");
+
+      db.collection("coworkers").onSnapshot((snapshot) => {
+        coworkerList.innerHTML = "";
+        snapshot.forEach((doc) => createRating(doc.id, doc.data(), currentUser, emoji));
+      });
+
+      addButton.onclick = async () => {
+        const input = document.getElementById("new-name");
+        const name = input.value.trim();
+        if (!name) return;
+        await db.collection("coworkers").doc(name).set({ ratings: {}, comments: [] });
+        input.value = "";
+      };
+    }
+
+    async function saveCoworker(name, data) {
+      await db.collection("coworkers").doc(name).set(data);
+    }
+
+    async function deleteCoworker(name) {
+      if (!confirm(`Delete ${name}?`)) return;
+      await db.collection("coworkers").doc(name).delete();
+    }
+
+    function createRating(name, coworkerData = { ratings: {}, comments: [] }, currentUser, emoji) {
+      const container = document.createElement("div");
+      container.className = "coworker";
+      container.dataset.name = name;
+
+      const header = document.createElement("div");
+      header.className = "coworker-header";
+
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "coworker-name";
+      nameDiv.textContent = name;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-btn";
+      removeBtn.textContent = "✖";
+      removeBtn.onclick = () => deleteCoworker(name);
+
+      header.appendChild(nameDiv);
+      header.appendChild(removeBtn);
+      container.appendChild(header);
+
+      const ratingDiv = document.createElement("div");
+      ratingDiv.className = "rating";
+      container.appendChild(ratingDiv);
+
+      const commentsDiv = document.createElement("div");
+      commentsDiv.className = "comments";
+      container.appendChild(commentsDiv);
+
+      const avgDisplay = document.createElement("div");
+      avgDisplay.className = "average";
+      container.appendChild(avgDisplay);
+
+      const commentInput = document.createElement("div");
+      commentInput.className = "comment-input";
+      commentInput.innerHTML = `
+        <input type="text" placeholder="Add a comment...">
+        <button>Post</button>
+      `;
+      container.appendChild(commentInput);
+
+      coworkerList.appendChild(container);
+
+      const stars = [];
+      for (let i = 1; i <= 5; i++) {
+        const label = document.createElement("label");
+        label.innerHTML = "★";
+        label.dataset.value = i;
+        ratingDiv.appendChild(label);
+        stars.push(label);
+      }
+
+      stars.forEach((star, idx) => {
+        star.addEventListener("mouseenter", () => {
+          stars.forEach((s, i) => s.classList.toggle("hovered", i <= idx));
+        });
+        star.addEventListener("mouseleave", () => {
+          stars.forEach(s => s.classList.remove("hovered"));
+        });
+        star.addEventListener("click", async () => {
+          const data = coworkerData;
+          if (data.ratings[currentUser] === idx + 1) delete data.ratings[currentUser];
+          else data.ratings[currentUser] = idx + 1;
+          await saveCoworker(name, data);
+        });
+      });
+
+      function updateStars() {
+        const userRating = coworkerData.ratings[currentUser] || 0;
+        stars.forEach((s, i) => s.classList.toggle("active", i < userRating));
+        const values = Object.values(coworkerData.ratings);
+        const avg = values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) : "N/A";
+        avgDisplay.textContent = `Average Rating: ⭐ ${avg}`;
+      }
+
+      function updateComments() {
+        commentsDiv.innerHTML = "";
+        coworkerData.comments.forEach((c, idx) => {
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `
+            <div><strong>${c.emoji} ${c.user}</strong>: ${c.text}</div>
+            ${c.user === currentUser ? `<button class='delete-comment'>🗑</button>` : ""}
+          `;
+          if (c.user === currentUser) {
+            div.querySelector(".delete-comment").onclick = async () => {
+              coworkerData.comments.splice(idx, 1);
+              await saveCoworker(name, coworkerData);
+            };
           }
-        }
+          commentsDiv.appendChild(div);
+        });
+      }
 
+      commentInput.querySelector("button").onclick = async () => {
+        const text = commentInput.querySelector("input").value.trim();
+        if (!text) return;
+        coworkerData.comments.push({ user: currentUser, emoji, text });
+        commentInput.querySelector("input").value = "";
         await saveCoworker(name, coworkerData);
       };
 
-      ratingDiv.appendChild(label);
-    }
+      updateStars();
+      updateComments();
 
-    container.appendChild(ratingDiv);
-
-    const ratings = Object.values(coworkerData.ratings || {});
-    const avg =
-      ratings.length > 0
-        ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
-        : "No ratings";
-    const avgDiv = document.createElement("div");
-    avgDiv.className = "average";
-    avgDiv.textContent =
-      typeof avg === "string" ? avg : `⭐ ${avg} average from ${ratings.length} ratings`;
-    container.appendChild(avgDiv);
-
-    if (ratings.length > 0) {
-      const toggle = document.createElement("button");
-      toggle.className = "toggle-details";
-      toggle.textContent = "Show who rated";
-      const details = document.createElement("div");
-      details.className = "details";
-
-      for (const [user, rating] of Object.entries(coworkerData.ratings)) {
-        const p = document.createElement("p");
-        p.textContent = `${user}: ${rating} ★`;
-        details.appendChild(p);
-      }
-
-      toggle.onclick = () => {
-        details.classList.toggle("visible");
-        toggle.textContent = details.classList.contains("visible")
-          ? "Hide details"
-          : "Show who rated";
-      };
-
-      container.appendChild(toggle);
-      container.appendChild(details);
-    }
-
-    const commentsDiv = document.createElement("div");
-    commentsDiv.className = "comments";
-    const comments = coworkerData.comments || [];
-
-    comments.forEach((c, index) => {
-      const p = document.createElement("div");
-      p.className = "comment";
-      p.innerHTML = `<div><strong>${c.user}</strong> <small>${c.time}</small><br>${c.text}</div>`;
-
-      if (c.user === currentUser) {
-        const delBtn = document.createElement("button");
-        delBtn.className = "delete-comment";
-        delBtn.textContent = "🗑";
-        delBtn.onclick = async () => {
-          coworkerData.comments.splice(index, 1);
-          await saveCoworker(name, coworkerData);
-        };
-        p.appendChild(delBtn);
-      }
-
-      commentsDiv.appendChild(p);
-    });
-
-    const commentInputDiv = document.createElement("div");
-    commentInputDiv.className = "comment-input";
-
-    const commentInput = document.createElement("input");
-    commentInput.placeholder = "Write a comment...";
-
-    const commentButton = document.createElement("button");
-    commentButton.textContent = "Post";
-    commentButton.onclick = async () => {
-      const text = commentInput.value.trim();
-      if (!text) return;
-      coworkerData.comments.push({
-        user: currentUser,
-        text,
-        time: new Date().toLocaleString(),
+      db.collection("coworkers").doc(name).onSnapshot((doc) => {
+        coworkerData = doc.data();
+        updateStars();
+        updateComments();
       });
-      await saveCoworker(name, coworkerData);
-      commentInput.value = "";
-    };
-
-    commentInputDiv.appendChild(commentInput);
-    commentInputDiv.appendChild(commentButton);
-    commentsDiv.appendChild(commentInputDiv);
-    container.appendChild(commentsDiv);
-
-    coworkerList.appendChild(container);
-  }
-
-  addButton.onclick = async () => {
-    const input = document.getElementById("new-name");
-    const name = input.value.trim();
-    if (!name) return;
-    await saveCoworker(name, { ratings: {}, comments: [] });
-    input.value = "";
-  };
-</script>
+    }
+  </script>
+</body>
+</html>
