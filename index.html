@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rate Your Coworkers 💜</title>
+
+    <style>
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #f3e8ff, #e0bbff);
+        min-height: 100vh;
+        margin: 0;
+        padding: 40px 20px;
+        color: #3b2066;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-x: hidden;
+      }
+
+      h2 {
+        text-align: center;
+        font-size: 2rem;
+        color: #5c3c92;
+        margin-bottom: 30px;
+        text-shadow: 0 0 10px #e4c1f9;
+      }
+
+      .coworker {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 5px 15px rgba(100, 0, 150, 0.1);
+        padding: 20px;
+        width: 100%;
+        max-width: 500px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .coworker::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 120px;
+        height: 120px;
+        background: rgba(200, 150, 255, 0.2);
+        border-radius: 50%;
+      }
+
+      .coworker-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .coworker-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #4b2a8b;
+      }
+
+      .remove-btn {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #a58ad4;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+
+      .remove-btn:hover {
+        color: #e76df6;
+      }
+
+      .rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+        margin-top: 10px;
+      }
+
+      .rating input {
+        display: none;
+      }
+
+      .rating label {
+        font-size: 2.3rem;
+        color: #d2b5ff;
+        cursor: pointer;
+        transition: transform 0.2s, color 0.2s;
+        filter: drop-shadow(0 0 5px rgba(180, 120, 255, 0.2));
+      }
+
+      .rating label:hover,
+      .rating label:hover ~ label {
+        color: #c47bff;
+        transform: scale(1.2);
+      }
+
+      .rating input:checked ~ label {
+        color: #9b59ff;
+      }
+
+      #add-form {
+        display: flex;
+        justify-content: center;
+        margin-top: 40px;
+        gap: 10px;
+      }
+
+      #new-name {
+        padding: 10px;
+        font-size: 1rem;
+        border: 2px solid #d4b3ff;
+        border-radius: 10px;
+        outline: none;
+        width: 60%;
+      }
+
+      #add-button {
+        background: #b57aff;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        font-size: 1rem;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      #add-button:hover {
+        background: #9c5eff;
+      }
+
+      .bubble {
+        position: absolute;
+        background: rgba(200, 150, 255, 0.25);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: float 10s infinite ease-in-out;
+      }
+
+      @keyframes float {
+        from {
+          transform: translateY(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateY(-100vh);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h2>💜 Rate Your Coworkers 💜</h2>
+
+    <div id="coworker-list"></div>
+
+    <div id="add-form">
+      <input type="text" id="new-name" placeholder="Enter coworker's name" />
+      <button id="add-button">Add</button>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+
+    <script>
+      // 🪄 Your Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyChk9fLtZGP-cXSoFLhoTabr_gcEV_PXi0",
+        authDomain: "rate-your-co-worker.firebaseapp.com",
+        projectId: "rate-your-co-worker",
+        storageBucket: "rate-your-co-worker.appspot.com",
+        messagingSenderId: "78681057527",
+        appId: "1:78681057527:web:27e311cf3d0cc2618d4bf2",
+        measurementId: "G-0F6RPE33CP"
+      };
+
+      // Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      const coworkerList = document.getElementById("coworker-list");
+      const addButton = document.getElementById("add-button");
+
+      // Floating bubbles background
+      for (let i = 0; i < 15; i++) {
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+        const size = Math.random() * 60 + 20;
+        bubble.style.width = size + "px";
+        bubble.style.height = size + "px";
+        bubble.style.left = Math.random() * 100 + "%";
+        bubble.style.bottom = "-100px";
+        bubble.style.animationDuration = 8 + Math.random() * 5 + "s";
+        document.body.appendChild(bubble);
+      }
+
+      // Load coworkers from Firestore
+      async function loadCoworkers() {
+        const snapshot = await db.collection("coworkers").get();
+        snapshot.forEach((doc) => {
+          createRating(doc.id, doc.data());
+        });
+      }
+
+      // Save coworker
+      async function saveCoworker(name, data) {
+        await db.collection("coworkers").doc(name).set(data);
+      }
+
+      // Delete coworker
+      async function deleteCoworker(name) {
+        const confirmDelete = confirm(`Are you sure you want to delete ${name}?`);
+        if (confirmDelete) {
+          await db.collection("coworkers").doc(name).delete();
+          document.querySelector(`[data-name="${name}"]`).remove();
+        }
+      }
+
+      function createRating(name, coworkerData = { ratings: {} }) {
+        const container = document.createElement("div");
+        container.className = "coworker";
+        container.dataset.name = name;
+
+        const header = document.createElement("div");
+        header.className = "coworker-header";
+
+        const nameDiv = document.createElement("div");
+        nameDiv.className = "coworker-name";
+        nameDiv.textContent = name;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.className = "remove-btn";
+        removeBtn.textContent = "×";
+        removeBtn.onclick = () => deleteCoworker(name);
+
+        header.appendChild(nameDiv);
+        header.appendChild(removeBtn);
+        container.appendChild(header);
+
+        const ratingDiv = document.createElement("div");
+        ratingDiv.className = "rating";
+
+        let currentRating = coworkerData.ratings?.["You"] || 0;
+
+        for (let i = 5; i >= 1; i--) {
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.id = `star${i}-${name}`;
+          input.name = `rating-${name}`;
+          input.value = i;
+
+          const label = document.createElement("label");
+          label.htmlFor = input.id;
+          label.textContent = "★";
+
+          input.checked = currentRating === i;
+
+          label.onclick = async () => {
+            if (currentRating === i) {
+              currentRating = 0;
+              input.checked = false;
+            } else {
+              currentRating = i;
+              input.checked = true;
+            }
+            coworkerData.ratings["You"] = currentRating;
+            await saveCoworker(name, coworkerData);
+          };
+
+          ratingDiv.appendChild(input);
+          ratingDiv.appendChild(label);
+        }
+
+        container.appendChild(ratingDiv);
+        coworkerList.appendChild(container);
+      }
+
+      addButton.onclick = async () => {
+        const input = document.getElementById("new-name");
+        const name = input.value.trim();
+        if (!name) return;
+        await saveCoworker(name, { ratings: {} });
+        createRating(name, { ratings: {} });
+        input.value = "";
+      };
+
+      loadCoworkers();
+    </script>
+  </body>
+</html>
