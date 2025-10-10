@@ -127,13 +127,15 @@
       font-size: 2.3rem;
       color: #d2b5ff;
       cursor: pointer;
-      transition: transform 0.2s, color 0.2s;
+      transition: transform 0.12s, color 0.12s;
+      user-select: none;
+      display: inline-block;
     }
 
     .rating label.hovered,
     .rating label.active {
       color: #9b59ff;
-      transform: scale(1.1);
+      transform: scale(1.12);
     }
 
     #add-form {
@@ -285,7 +287,8 @@
     <span id="profile-name">User</span>
   </div>
 
-  <div id="login-page" class="login-container">
+  <!-- Login Page -->
+  <div id="login-page" class="login-container" style="display: none;">
     <h2>💜 Sign In 💜</h2>
     <input type="email" id="login-email" placeholder="Email" />
     <input type="password" id="login-password" placeholder="Password" />
@@ -294,7 +297,8 @@
     <p>or <a href="#" id="signup-link">Create an account</a></p>
   </div>
 
-  <div id="signup-page" class="login-container" style="display:none;">
+  <!-- Signup Page -->
+  <div id="signup-page" class="login-container" style="display: none;">
     <h2>💜 Create Account 💜</h2>
     <input type="text" id="signup-display-name" placeholder="Display Name" />
     <input type="email" id="signup-email" placeholder="Email" />
@@ -304,7 +308,8 @@
     <p><a href="#" id="login-link">Back to Login</a></p>
   </div>
 
-  <div id="app" style="display:none;">
+  <!-- Main App -->
+  <div id="app" style="display: none;">
     <button id="profile-btn">Profile</button>
     <button id="logout-btn">Logout</button>
     <h2>💜 Rate Your Coworkers 💜</h2>
@@ -317,6 +322,7 @@
     </div>
   </div>
 
+  <!-- Profile Modal -->
   <div id="profile-modal" class="login-container" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 999;">
     <h2>💜 Profile Settings 💜</h2>
     <label style="display:block; margin-bottom:10px;">Choose an emoji avatar:</label>
@@ -475,6 +481,7 @@
     function startApp(currentUser, emoji) {
       const addButton = document.getElementById("add-button");
 
+      // show newest first
       db.collection("coworkers")
         .orderBy("createdAt", "desc")
         .onSnapshot((snapshot) => {
@@ -505,6 +512,10 @@
     }
 
     function createRating(name, coworkerData = { ratings: {}, comments: [] }, currentUser, emoji) {
+      // Ensure coworkerData has the structures we expect
+      coworkerData.ratings = coworkerData.ratings || {};
+      coworkerData.comments = coworkerData.comments || [];
+
       const container = document.createElement("div");
       container.className = "coworker";
       container.dataset.name = name;
@@ -518,93 +529,136 @@
 
       const removeBtn = document.createElement("button");
       removeBtn.className = "remove-btn";
-      removeBtn.textContent = "×";
+      removeBtn.textContent = "✖";
       removeBtn.onclick = () => deleteCoworker(name);
 
       header.appendChild(nameDiv);
       header.appendChild(removeBtn);
       container.appendChild(header);
 
+      // Rating stars (left-to-right, with hover & active)
       const ratingDiv = document.createElement("div");
       ratingDiv.className = "rating";
-      const ratings = coworkerData.ratings || {};
+      container.appendChild(ratingDiv);
 
+      const stars = [];
       for (let i = 1; i <= 5; i++) {
         const label = document.createElement("label");
         label.textContent = "★";
         label.dataset.value = i;
-        if (ratings[currentUser] === i) label.classList.add("active");
-
-        label.onclick = async () => {
-          ratings[currentUser] = i;
-          await saveCoworker(name, { ...coworkerData, ratings });
-        };
-
         ratingDiv.appendChild(label);
+        stars.push(label);
       }
 
-      container.appendChild(ratingDiv);
-
-      const avg = document.createElement("div");
-      avg.className = "average";
-
-      const calcAverage = () => {
-        const values = Object.values(ratings);
-        if (!values.length) return "No ratings yet";
-        const average = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
-        return `⭐ Average: ${average}`;
-      };
-
-      avg.textContent = calcAverage();
-      container.appendChild(avg);
-
-      const commentsDiv = document.createElement("div");
-      commentsDiv.className = "comments";
-
-      const renderComments = () => {
-        commentsDiv.innerHTML = "";
-        coworkerData.comments?.forEach((comment, idx) => {
-          const div = document.createElement("div");
-          div.className = "comment";
-          div.innerHTML = `<strong>${comment.emoji} ${comment.user}:</strong> ${comment.text} <small>${new Date(comment.time).toLocaleString()}</small>`;
-          const delBtn = document.createElement("button");
-          delBtn.textContent = "🗑️";
-          delBtn.className = "delete-comment";
-          delBtn.onclick = async () => {
-            coworkerData.comments.splice(idx, 1);
-            await saveCoworker(name, coworkerData);
-          };
-          div.appendChild(delBtn);
-          commentsDiv.appendChild(div);
+      // Helper to visually set active based on current user's rating
+      const setActiveFromData = () => {
+        const userRating = coworkerData.ratings[currentUser] || 0;
+        stars.forEach((s, idx) => {
+          s.classList.toggle("active", idx < userRating);
         });
       };
 
-      renderComments();
+      // Hover behavior: highlight left-to-right
+      stars.forEach((s, idx) => {
+        s.addEventListener("mouseenter", () => {
+          stars.forEach((st, i) => st.classList.toggle("hovered", i <= idx));
+        });
+        s.addEventListener("mouseleave", () => {
+          stars.forEach((st) => st.classList.remove("hovered"));
+        });
 
+        s.addEventListener("click", async () => {
+          // immediate visual change
+          const value = idx + 1;
+          if (coworkerData.ratings[currentUser] === value) {
+            delete coworkerData.ratings[currentUser];
+          } else {
+            coworkerData.ratings[currentUser] = value;
+          }
+          setActiveFromData();
+
+          // update average immediately
+          avg.textContent = computeAverageText();
+
+          // persist
+          await saveCoworker(name, coworkerData);
+        });
+      });
+
+      setActiveFromData();
+
+      // Average display
+      const computeAverageText = () => {
+        const values = Object.values(coworkerData.ratings || {});
+        if (!values.length) return "Average Rating: N/A";
+        const avgVal = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+        return `Average Rating: ⭐ ${avgVal}`;
+      };
+
+      const avg = document.createElement("div");
+      avg.className = "average";
+      avg.textContent = computeAverageText();
+      container.appendChild(avg);
+
+      // Comments area
+      const commentsDiv = document.createElement("div");
+      commentsDiv.className = "comments";
+      const renderComments = () => {
+        commentsDiv.innerHTML = "";
+        coworkerData.comments.forEach((c, idx) => {
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `
+            <div><strong>${c.emoji || "😊"} ${c.user}</strong> <small>${new Date(c.time).toLocaleString()}</small><br>${c.text}</div>
+          `;
+          if (c.user === currentUser) {
+            const delBtn = document.createElement("button");
+            delBtn.className = "delete-comment";
+            delBtn.textContent = "🗑️";
+            delBtn.onclick = async () => {
+              coworkerData.comments.splice(idx, 1);
+              await saveCoworker(name, coworkerData);
+            };
+            div.appendChild(delBtn);
+          }
+          commentsDiv.appendChild(div);
+        });
+      };
+      renderComments();
+      container.appendChild(commentsDiv);
+
+      // Comment input
       const commentInput = document.createElement("div");
       commentInput.className = "comment-input";
       commentInput.innerHTML = `
         <input type="text" placeholder="Add a comment..." />
-        <button>💬</button>
+        <button>Post</button>
       `;
-
       const inputField = commentInput.querySelector("input");
-      const btn = commentInput.querySelector("button");
-      btn.onclick = async () => {
+      const postBtn = commentInput.querySelector("button");
+      postBtn.onclick = async () => {
         const text = inputField.value.trim();
         if (!text) return;
-        coworkerData.comments.push({
-          user: currentUser,
-          emoji,
-          text,
-          time: new Date().toISOString(),
-        });
+        const time = new Date().toISOString();
+        coworkerData.comments.push({ user: currentUser, emoji: emoji, text, time });
         inputField.value = "";
         await saveCoworker(name, coworkerData);
       };
-
-      container.appendChild(commentsDiv);
       container.appendChild(commentInput);
+
+      // Listen for live updates to this coworker document and refresh UI parts
+      db.collection("coworkers").doc(name).onSnapshot((doc) => {
+        const data = doc.data();
+        if (!data) return; // deleted
+        coworkerData = data;
+        coworkerData.ratings = coworkerData.ratings || {};
+        coworkerData.comments = coworkerData.comments || [];
+        // update stars and average and comments instantly when doc updates
+        setActiveFromData();
+        avg.textContent = computeAverageText();
+        renderComments();
+      });
+
       coworkerList.appendChild(container);
     }
   </script>
