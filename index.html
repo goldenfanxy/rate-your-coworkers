@@ -1,371 +1,703 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>💛 Rate Your Coworkers 💛</title>
 
 <style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #f5f0e6, #d8cfc4);
-  min-height: 100vh;
-  margin: 0;
-  padding: 40px 20px;
-  color: #5a4a3f;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-x: hidden;
-  position: relative;
-}
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
-/* Starry background canvas */
-#stars-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-}
+  :root{
+    --bg1: #f5f0e6;
+    --bg2: #d8cfc4;
+    --taupe-600: rgba(150,130,110,0.9);
+    --glass: rgba(255,245,230,0.45);
+    --glass-strong: rgba(255,245,230,0.85);
+    --card-shadow: rgba(90,74,63,0.15);
+  }
 
-/* Headings */
-h2 {
-  text-align: center;
-  font-size: 2rem;
-  color: #7a6655;
-  margin-bottom: 30px;
-  text-shadow: 0 0 10px rgba(122,102,85,0.3);
-}
+  html,body{height:100%; margin:0;}
+  body{
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg,var(--bg1),var(--bg2));
+    min-height:100vh;
+    color:#5a4a3f;
+    padding:28px;
+    box-sizing:border-box;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
 
-/* Buttons */
-#logout-btn, #profile-btn {
-  position: absolute;
-  top: 20px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  cursor: pointer;
-  color: #fff;
-  border: none;
-  backdrop-filter: blur(10px);
-  background: rgba(150, 130, 110, 0.7);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: background 0.3s;
-}
-#logout-btn { right: 20px; }
-#logout-btn:hover { background: rgba(150, 130, 110, 0.9); }
-#profile-btn { right: 110px; }
-#profile-btn:hover { background: rgba(150, 130, 110, 0.9); }
+  /* Top bar: Add + Search + Title + Profile/Logout */
+  .topbar{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    justify-content:space-between;
+    margin-bottom:22px;
+    position:relative;
+    z-index:3;
+  }
+  .left-controls{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
 
-/* Profile display */
-#profile-display {
-  position: absolute;
-  top: 22px;
-  left: 20px;
-  background: rgba(255,255,255,0.5);
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 1rem;
-  color: #5a4a3f;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 2px 10px rgba(90, 74, 63, 0.2);
-}
+  .glass-input{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background: rgba(255,255,255,0.35);
+    padding:8px;
+    border-radius:12px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 6px 18px rgba(20,10,0,0.04);
+  }
+  .glass-input input[type="text"]{
+    border:none;
+    background:transparent;
+    outline:none;
+    padding:8px 10px;
+    width:220px;
+    font-size:14px;
+    color: #4b3b30;
+  }
+  .btn{
+    background: var(--taupe-600);
+    color:white;
+    border:none;
+    padding:8px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+  }
+  .btn:hover{ opacity:0.95; }
 
-/* Coworker cards */
-.coworker {
-  background: rgba(255, 245, 230, 0.6);
-  border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(90, 74, 63, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 20px;
-  width: 100%;
-  max-width: 500px;
-  margin-bottom: 25px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s, border 0.3s;
-}
-.coworker:hover {
-  transform: scale(1.05); /* Bigger pop */
-  box-shadow: 0 12px 25px rgba(90,74,63,0.25); /* Stronger shadow */
-  border: 1px solid rgba(139,111,91,0.3); /* Soft border highlight */
-  background: rgba(255,245,230,0.8); /* Brighter */
-}
+  .title{
+    text-align:center;
+    font-size:22px;
+    color:#7a6655;
+    text-shadow:0 0 8px rgba(122,102,85,0.25);
+    flex:1;
+  }
 
-.coworker-header { display: flex; justify-content: space-between; align-items: center; }
-.coworker-name { font-size: 1.3rem; font-weight: 600; color: #6b5745; }
-.remove-btn { background: none; border: none; font-size: 1.5rem; color: #a58d7d; cursor: pointer; }
-.remove-btn:hover { color: #d49b73; }
+  .top-right{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .profile-chip{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    background: rgba(255,255,255,0.5);
+    padding:8px 10px;
+    border-radius:16px;
+    backdrop-filter: blur(8px);
+    border:1px solid rgba(255,255,255,0.2);
+  }
 
-/* Ratings */
-.rating { display: flex; justify-content: flex-start; margin-top: 10px; gap: 5px; }
-.rating label { font-size: 2.3rem; color: #c9b6a5; cursor: pointer; transition: transform 0.12s, color 0.12s; user-select: none; }
-.rating label.hovered, .rating label.active { color: #8b6f5b; transform: scale(1.12); }
+  /* Grid layout for coworker cards (3 columns) */
+  .grid-wrap{
+    width:100%;
+    margin-top: 18px;
+    display:grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap:18px;
+    justify-items:center;
+  }
+  @media(min-width:720px){
+    .grid-wrap{ grid-template-columns: repeat(2, 1fr); }
+  }
+  @media(min-width:1100px){
+    .grid-wrap{ grid-template-columns: repeat(3, 1fr); }
+  }
 
-/* Add coworker form */
-#add-form { display: flex; justify-content: center; margin-top: 40px; gap: 10px; }
-#new-name { padding: 10px; font-size: 1rem; border: 2px solid #d4c4b2; border-radius: 10px; outline: none; width: 60%; transition: box-shadow 0.2s ease; }
-#new-name:focus { box-shadow: 0 0 10px rgba(139,111,91,0.4); }
-#add-button { background: rgba(150, 130, 110, 0.7); border: none; color: white; padding: 10px 20px; font-size: 1rem; border-radius: 12px; cursor: pointer; transition: background 0.3s; }
-#add-button:hover { background: rgba(150, 130, 110, 0.9); }
+  /* Coworker card - liquid glass */
+  .coworker{
+    width:100%;
+    max-width:520px;
+    background: var(--glass);
+    border-radius:18px;
+    padding:18px;
+    box-shadow: 0 10px 25px var(--card-shadow), inset 0 6px 30px rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.22);
+    backdrop-filter: blur(18px);
+    transform-origin:center;
+    transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s, border .28s, background .28s;
+    position:relative;
+  }
 
-/* Comments */
-.comments { margin-top: 15px; background: rgba(245,235,220,0.5); border-radius: 10px; padding: 10px; }
-.comment { border-bottom: 1px solid #d4c4b2; padding: 5px 0; display: flex; justify-content: space-between; align-items: center; }
-.comment strong { color: #7a6655; }
-.comment small { font-size: 0.75rem; color: #a58d7d; }
-.comment-input { display: flex; margin-top: 8px; gap: 8px; }
-.comment-input input { flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #d4c4b2; }
-.comment-input button { background: rgba(139,111,91,0.7); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-.comment-input button:hover { background: rgba(139,111,91,0.9); }
-.delete-comment { background: none; border: none; color: #a58d7d; cursor: pointer; font-size: 1rem; }
-.delete-comment:hover { color: #d49b73; }
+  /* float + tilt (slight 3D feel) */
+  .coworker:hover{
+    transform: translateY(-10px) rotateX(4deg) rotateZ(-0.8deg) scale(1.03);
+    background: var(--glass-strong);
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 25px 40px rgba(60,40,20,0.12), inset 0 0 24px rgba(255,255,255,0.12);
+  }
 
-/* Average rating */
-.average { margin-top: 8px; font-weight: 500; color: #6b5745; }
+  .coworker-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .coworker-name{ font-weight:600; color:#6b5745; font-size:1.15rem; }
+  .remove-btn{ background:none; border:none; font-size:18px; color:#a58d7d; cursor:pointer; }
+  .remove-btn:hover{ color:#d49b73; }
 
-/* Login/Signup containers */
-.login-container {
-  background: rgba(255, 245, 230, 0.6);
-  backdrop-filter: blur(10px);
-  padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 5px 20px rgba(90,74,63,0.1);
-  text-align: center;
-  width: 90%;
-  max-width: 400px;
-  margin-top: 60px;
-}
-.login-container input { width: 100%; padding: 10px; margin: 10px 0; border: 2px solid #d4c4b2; border-radius: 10px; outline: none; font-size: 1rem; }
-.login-container button { background: rgba(150, 130, 110, 0.7); border: none; color: white; padding: 10px 20px; font-size: 1rem; border-radius: 12px; cursor: pointer; transition: background 0.3s; }
-.login-container button:hover { background: rgba(150, 130, 110, 0.9); }
-.error-message { color: #c75b5b; font-size: 0.9rem; margin-top: 5px; }
+  /* Rating stars */
+  .rating{ display:flex; gap:6px; margin-top:10px; align-items:center; }
+  .rating label{ font-size:1.6rem; color:#c9b6a5; cursor:pointer; transition: transform .12s, color .12s; user-select:none; }
+  .rating label.hovered, .rating label.active{ color:#8b6f5b; transform:scale(1.12); }
+
+  .average{ margin-top:10px; color:#6b5745; font-weight:600; }
+
+  .comments{ margin-top:12px; background: rgba(245,235,220,0.45); border-radius:10px; padding:10px; }
+  .comment{ display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px solid rgba(212,196,178,0.6); align-items:flex-start; }
+  .comment strong{ color:#7a6655; font-size:0.95rem; }
+  .comment small{ color:#a58d7d; font-size:0.72rem; display:block; margin-top:4px; }
+  .comment .delete-comment{ background:none; border:none; color:#a58d7d; cursor:pointer; font-size:14px; }
+  .comment-input{ display:flex; gap:8px; margin-top:8px; }
+  .comment-input input{ flex:1; padding:8px; border-radius:8px; border:1px solid rgba(212,196,178,0.7); outline:none; }
+  .comment-input button{ padding:8px 10px; border-radius:8px; border:none; background:var(--taupe-600); color:white; cursor:pointer; }
+
+  /* small helpers */
+  .meta-row{ display:flex; gap:10px; align-items:center; margin-top:8px; color:#735d4b; font-weight:500; font-size:0.95rem; }
+
+  /* canvas sits behind everything */
+  #stars-canvas{ position:fixed; inset:0; z-index:-2; display:block; pointer-events:none; }
+
+  /* shooting star keyframes for both directions */
+  @keyframes shoot-right {
+    0%{ opacity:1; transform: translateX(0) translateY(0) rotate(-45deg); }
+    100%{ opacity:0; transform: translateX(1200px) translateY(640px) rotate(-45deg); }
+  }
+  @keyframes shoot-left {
+    0%{ opacity:1; transform: translateX(0) translateY(0) rotate(135deg); }
+    100%{ opacity:0; transform: translateX(-1200px) translateY(640px) rotate(135deg); }
+  }
+
+  /* small responsive tweaks */
+  @media(max-width:520px){
+    .glass-input input[type="text"]{ width:120px; }
+    .title{ display:none; }
+  }
+
+  /* simple login/signup layout */
+  .auth-wrap { max-width:420px; margin:40px auto; background:rgba(255,255,255,0.95); padding:18px; border-radius:12px; box-shadow:0 12px 40px rgba(20,10,0,0.06);}
+  .auth-row{ display:flex; gap:8px; margin-top:8px; }
+  .auth-row input{ flex:1; padding:8px; border-radius:8px; border:1px solid #d4c4b2; }
+  .auth-links{ margin-top:8px; display:flex; justify-content:space-between; align-items:center; }
+  .hidden{ display:none; }
 </style>
 </head>
-
 <body>
 
-<canvas id="stars-canvas"></canvas>
-
-<div id="profile-display" style="display:none;">
-  <span id="profile-emoji">😊</span>
-  <span id="profile-name">User</span>
-</div>
-
-<!-- Login Page -->
-<div id="login-page" class="login-container" style="display:none;">
-  <h2>Sign In</h2>
-  <input type="email" id="login-email" placeholder="Email" />
-  <input type="password" id="login-password" placeholder="Password" />
-  <button id="login-button">Sign In</button>
-  <div id="login-error" class="error-message"></div>
-  <p>or <a href="#" id="signup-link">Create an account</a></p>
-</div>
-
-<!-- Signup Page -->
-<div id="signup-page" class="login-container" style="display:none;">
-  <h2>Create Account</h2>
-  <input type="text" id="signup-display-name" placeholder="Display Name" />
-  <input type="email" id="signup-email" placeholder="Email" />
-  <input type="password" id="signup-password" placeholder="Password" />
-  <button id="signup-button">Sign Up</button>
-  <div id="signup-error" class="error-message"></div>
-  <p><a href="#" id="login-link">Back to Login</a></p>
-</div>
-
-<!-- Main App -->
-<div id="app" style="display:none;">
-  <button id="profile-btn">Profile</button>
-  <button id="logout-btn">Logout</button>
-  <h2>Rate Your Coworkers</h2>
-  <div id="coworker-list"></div>
-  <div id="add-form">
-    <input type="text" id="new-name" placeholder="Enter coworker's name" />
-    <button id="add-button">Add</button>
+  <!-- Simple Login & Signup pages (IDs expected by JS) -->
+  <div id="login-page" class="auth-wrap">
+    <h2 style="margin:0 0 8px 0;">Sign in</h2>
+    <div class="auth-row">
+      <input id="login-email" placeholder="Email" />
+    </div>
+    <div class="auth-row">
+      <input id="login-password" type="password" placeholder="Password" />
+    </div>
+    <div class="auth-row" style="justify-content:flex-end;">
+      <button id="login-button" class="btn">Login</button>
+    </div>
+    <div style="margin-top:8px;">
+      <button id="signup-link" class="btn" style="background:rgba(150,130,110,0.12); color: #5a4a3f;">Create account</button>
+    </div>
+    <div class="auth-links">
+      <div id="login-error" style="color:#b04a3a;"></div>
+    </div>
   </div>
-</div>
 
-<!-- Profile Modal -->
-<div id="profile-modal" class="login-container" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:999;">
-  <h2>Profile Settings</h2>
-  <label style="display:block; margin-bottom:10px;">Choose an emoji avatar:</label>
-  <div id="emoji-picker" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-    <span class="emoji-option" style="font-size:2rem; cursor:pointer;">😊</span>
-    <span class="emoji-option" style="font-size:2rem; cursor:pointer;">😎</span>
-    <span class="emoji-option" style="font-size:2rem; cursor:pointer;">🤩</span>
-    <span class="emoji-option" style="font-size:2rem; cursor:pointer;">🐱</span>
-    <span class="emoji-option" style="font-size:2rem; cursor:pointer;">🌸</span>
-    <span class="emoji-option" style="font-size:2rem; cursor:pointer;">🔥</span>
+  <div id="signup-page" class="auth-wrap hidden">
+    <h2 style="margin:0 0 8px 0;">Sign up</h2>
+    <div class="auth-row">
+      <input id="signup-display-name" placeholder="Display name" />
+    </div>
+    <div class="auth-row">
+      <input id="signup-email" placeholder="Email" />
+    </div>
+    <div class="auth-row">
+      <input id="signup-password" type="password" placeholder="Password" />
+    </div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+      <button id="signup-button" class="btn">Create</button>
+      <button id="login-link" class="btn" style="background:rgba(200,180,160,0.6); color:#3b2b20;">Back</button>
+    </div>
+    <div id="signup-error" style="color:#b04a3a; margin-top:8px;"></div>
   </div>
-  <input type="text" id="profile-display-name" placeholder="Enter new display name" style="margin-top:15px;">
-  <button id="save-profile" style="margin-top:15px;">Save</button>
-  <button id="close-profile" style="margin-top:10px; background:#d4c4b2; color:#5a4a3f;">Close</button>
-</div>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+  <!-- App container (hidden until auth) -->
+  <div id="app" style="display:none;">
+    <!-- Top bar: Add coworker + Search + Title + Profile -->
+    <div class="topbar">
+      <div class="left-controls">
+        <div class="glass-input" style="gap:8px;">
+          <input id="add-name-top" type="text" placeholder="Add coworker name" />
+          <button id="add-top" class="btn">Add</button>
+        </div>
 
-<script>
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyChk9fLtZGP-cXSoFLhoTabr_gcEV_PXi0",
-  authDomain: "rate-your-co-worker.firebaseapp.com",
-  projectId: "rate-your-co-worker",
-  storageBucket: "rate-your-co-worker.appspot.com",
-  messagingSenderId: "78681057527",
-  appId: "1:78681057527:web:27e311cf3d0cc2618d4bf2"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+        <div class="glass-input" style="gap:8px;">
+          <input id="search-input" type="text" placeholder="Search coworkers" />
+          <button id="search-btn" class="btn">Search</button>
+          <button id="clear-search" class="btn" style="background:rgba(0,0,0,0.06); color:#5a4a3f;">Clear</button>
+        </div>
+      </div>
 
-// DOM Elements
-const loginPage = document.getElementById("login-page");
-const signupPage = document.getElementById("signup-page");
-const appDiv = document.getElementById("app");
-const coworkerList = document.getElementById("coworker-list");
-const loginError = document.getElementById("login-error");
-const signupError = document.getElementById("signup-error");
-const profileModal = document.getElementById("profile-modal");
-const emojiPicker = document.querySelectorAll(".emoji-option");
-const saveProfile = document.getElementById("save-profile");
-const closeProfile = document.getElementById("close-profile");
-const profileDisplay = document.getElementById("profile-display");
-const profileEmoji = document.getElementById("profile-emoji");
-const profileName = document.getElementById("profile-name");
-let selectedEmoji = null;
+      <div class="title">Rate Your Coworkers</div>
 
-// Login/Signup toggle
-document.getElementById("signup-link").onclick = () => { loginPage.style.display = "none"; signupPage.style.display = "block"; };
-document.getElementById("login-link").onclick = () => { signupPage.style.display = "none"; loginPage.style.display = "block"; };
+      <div class="top-right">
+        <div id="profile-display" class="profile-chip" style="display:none;">
+          <span id="profile-emoji">😊</span>
+          <span id="profile-name" style="font-weight:600;color:#5a4a3f;"></span>
+        </div>
+        <button id="profile-btn" class="btn" style="background:rgba(210,180,150,0.9);">Profile</button>
+        <button id="logout-btn" class="btn" style="background:rgba(180,150,120,0.95);">Logout</button>
+      </div>
+    </div>
 
-// Login
-document.getElementById("login-button").onclick = async () => {
-  loginError.textContent = "";
-  const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
-  try { await auth.signInWithEmailAndPassword(email, password); }
-  catch (err) { loginError.textContent = "❌ Incorrect email or password."; }
-};
+    <!-- grid for coworker cards -->
+    <div id="coworker-grid" class="grid-wrap"></div>
+  </div>
 
-// Signup
-document.getElementById("signup-button").onclick = async () => {
-  signupError.textContent = "";
-  const displayName = document.getElementById("signup-display-name").value.trim();
-  const email = document.getElementById("signup-email").value;
-  const password = document.getElementById("signup-password").value;
-  if (!displayName) { signupError.textContent = "⚠️ Please enter a display name."; return; }
-  try {
-    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-    const user = userCredential.user;
-    await db.collection("users").doc(user.uid).set({ displayName, emoji: "😊" });
-  } catch (err) { signupError.textContent = "⚠️ "+err.message; }
-};
+  <!-- Profile modal (same structure as before) -->
+  <div id="profile-modal" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; z-index:9999;">
+    <div style="width:360px; max-width:92%; background:rgba(255,255,255,0.95); border-radius:14px; padding:18px; box-shadow:0 12px 40px rgba(20,10,0,0.15);">
+      <h3 style="margin:0 0 8px 0; color:#6b5745;">Profile Settings</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+        <span class="emoji-option" style="font-size:1.6rem;cursor:pointer;">😊</span>
+        <span class="emoji-option" style="font-size:1.6rem;cursor:pointer;">😎</span>
+        <span class="emoji-option" style="font-size:1.6rem;cursor:pointer;">🤩</span>
+        <span class="emoji-option" style="font-size:1.6rem;cursor:pointer;">🐱</span>
+        <span class="emoji-option" style="font-size:1.6rem;cursor:pointer;">🌸</span>
+        <span class="emoji-option" style="font-size:1.6rem;cursor:pointer;">🔥</span>
+      </div>
+      <input id="profile-display-name" placeholder="New display name" style="width:100%; padding:10px; border-radius:8px; border:1px solid #d4c4b2; margin-bottom:10px;" />
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="save-profile" class="btn">Save</button>
+        <button id="close-profile" class="btn" style="background:rgba(200,180,160,0.6); color:#3b2b20;">Close</button>
+      </div>
+    </div>
+  </div>
 
-// Logout
-document.getElementById("logout-btn").onclick = async () => { await auth.signOut(); };
+  <!-- canvas for stars & shooting trails -->
+  <canvas id="stars-canvas"></canvas>
 
-// Profile Modal
-document.getElementById("profile-btn").onclick = () => { profileModal.style.display = "block"; };
-closeProfile.onclick = () => { profileModal.style.display = "none"; };
-emojiPicker.forEach(e => { e.onclick = () => { emojiPicker.forEach(em => em.style.border="none"); e.style.border="2px solid #967e6e"; selectedEmoji = e.textContent; }; });
-saveProfile.onclick = async () => {
-  const user = auth.currentUser;
-  const newName = document.getElementById("profile-display-name").value.trim();
-  if (!user) return alert("Not logged in!");
-  if (!newName && !selectedEmoji) return alert("Please enter a display name or choose an emoji!");
-  const userRef = db.collection("users").doc(user.uid);
-  const data = (await userRef.get()).data() || {};
-  const updatedName = newName || data.displayName;
-  const updatedEmoji = selectedEmoji || data.emoji || "😊";
-  await userRef.set({ displayName: updatedName, emoji: updatedEmoji }, { merge:true });
-  profileName.textContent = updatedName;
-  profileEmoji.textContent = updatedEmoji;
-  alert("✅ Profile updated!");
-  profileModal.style.display = "none";
-};
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
 
-// Auth state
-auth.onAuthStateChanged(async (user)=>{
-  if(user){
-    loginPage.style.display="none"; signupPage.style.display="none"; appDiv.style.display="block";
-    const userDoc = await db.collection("users").doc(user.uid).get();
-    const userData = userDoc.data()||{};
-    const displayName = userData.displayName||user.email;
-    const emoji = userData.emoji||"😊";
-    profileDisplay.style.display="flex";
-    profileEmoji.textContent = emoji;
-    profileName.textContent = displayName;
-    startApp(displayName, emoji);
-  } else { loginPage.style.display="block"; signupPage.style.display="none"; appDiv.style.display="none"; profileDisplay.style.display="none"; }
-});
-
-// App logic
-function startApp(currentUser, emoji){
-  const addButton = document.getElementById("add-button");
-  db.collection("coworkers").orderBy("createdAt","desc").onSnapshot(snapshot=>{
-    coworkerList.innerHTML="";
-    snapshot.forEach(doc=>createRating(doc.id, doc.data(), currentUser, emoji));
-  });
-  addButton.onclick = async () => {
-    const input = document.getElementById("new-name");
-    const name = input.value.trim();
-    if(!name) return;
-    await db.collection("coworkers").doc(name).set({ ratings:{}, comments:[], createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-    input.value="";
+  <script>
+  /************************************************************************
+   * Firebase config (unchanged)
+   ************************************************************************/
+  const firebaseConfig = {
+    apiKey: "AIzaSyChk9fLtZGP-cXSoFLhoTabr_gcEV_PXi0",
+    authDomain: "rate-your-co-worker.firebaseapp.com",
+    projectId: "rate-your-co-worker",
+    storageBucket: "rate-your-co-worker.appspot.com",
+    messagingSenderId: "78681057527",
+    appId: "1:78681057527:web:27e311cf3d0cc2618d4bf2"
   };
-}
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-async function saveCoworker(name,data){ await db.collection("coworkers").doc(name).set(data); }
-async function deleteCoworker(name){ if(!confirm(`Delete ${name}?`)) return; await db.collection("coworkers").doc(name).delete(); }
+  /************************************************************************
+   * DOM references & state
+   ************************************************************************/
+  const addTop = document.getElementById('add-top');
+  const addNameTop = document.getElementById('add-name-top');
+  const searchBtn = document.getElementById('search-btn');
+  const searchInput = document.getElementById('search-input');
+  const clearSearch = document.getElementById('clear-search');
 
-function createRating(name, coworkerData={ratings:{}, comments:[]}, currentUser, emoji){
-  coworkerData.ratings = coworkerData.ratings||{};
-  coworkerData.comments = coworkerData.comments||[];
-  const container = document.createElement("div"); container.className="coworker"; container.dataset.name=name;
+  const profileBtn = document.getElementById('profile-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const profileModal = document.getElementById('profile-modal');
+  const profileDisplay = document.getElementById('profile-display');
+  const profileEmoji = document.getElementById('profile-emoji');
+  const profileNameEl = document.getElementById('profile-name');
 
-  const header = document.createElement("div"); header.className="coworker-header";
-  const nameDiv = document.createElement("div"); nameDiv.className="coworker-name"; nameDiv.textContent=name;
-  const removeBtn = document.createElement("button"); removeBtn.className="remove-btn"; removeBtn.textContent="✖"; removeBtn.onclick=()=>deleteCoworker(name);
-  header.appendChild(nameDiv); header.appendChild(removeBtn); container.appendChild(header);
+  const gridWrap = document.getElementById('coworker-grid');
 
-  const ratingDiv = document.createElement("div"); ratingDiv.className="rating"; container.appendChild(ratingDiv);
-  const stars=[];
-  for(let i=1;i<=5;i++){ const label=document.createElement("label"); label.textContent="★"; label.dataset.value=i; ratingDiv.appendChild(label); stars.push(label); }
-  const setActiveFromData=()=>{ const userRating=coworkerData.ratings[currentUser]||0; stars.forEach((s,idx)=>s.classList.toggle("active", idx<userRating)); };
-  stars.forEach((s,idx)=>{
-    s.addEventListener("mouseenter",()=>{ stars.forEach((st,i)=>st.classList.toggle("hovered", i<=idx)); });
-    s.addEventListener("mouseleave",()=>{ stars.forEach(st=>st.classList.remove("hovered")); });
-    s.addEventListener("click",async ()=>{
-      const value=idx+1;
-      if(coworkerData.ratings[currentUser]===value){ delete coworkerData.ratings[currentUser]; }
-      else{ coworkerData.ratings[currentUser]=value; }
-      setActiveFromData();
-      avg.textContent=computeAverageText();
-      await saveCoworker(name,coworkerData);
-    });
+  const saveProfileBtn = document.getElementById('save-profile');
+  const closeProfileBtn = document.getElementById('close-profile');
+  const emojiOptions = document.querySelectorAll('.emoji-option');
+  let selectedEmoji = null;
+
+  // local cache so rendering comments can fetch latest displayName/emoji by uid
+  const userCache = {}; // uid -> {displayName, emoji}
+
+  // Snapshot cache (so Search just re-renders without re-fetch)
+  let coworkerDocsCache = []; // array of {id, data}
+
+  // current search term
+  let currentSearch = '';
+
+  /************************************************************************
+   * Authentication / profile handling
+   ************************************************************************/
+  // login/signup UI wiring (make sure the elements exist)
+  const loginPage = document.getElementById('login-page');
+  const signupPage = document.getElementById('signup-page');
+  const appDiv = document.getElementById('app');
+
+  // fallback guards: if any of these don't exist, create no-op to avoid runtime exceptions
+  function noop(){}
+
+  document.getElementById('signup-link').onclick = (e) => { e.preventDefault(); if(loginPage) loginPage.classList.add('hidden'); if(signupPage) signupPage.classList.remove('hidden'); };
+  document.getElementById('login-link').onclick = (e) => { e.preventDefault(); if(signupPage) signupPage.classList.add('hidden'); if(loginPage) loginPage.classList.remove('hidden'); };
+
+  document.getElementById('login-button').onclick = async () => {
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-password').value;
+    try { await auth.signInWithEmailAndPassword(email, pass); }
+    catch(e){ document.getElementById('login-error').textContent = '❌ Incorrect email or password.'; }
+  };
+
+  document.getElementById('signup-button').onclick = async () => {
+    const displayName = document.getElementById('signup-display-name').value.trim();
+    const email = document.getElementById('signup-email').value;
+    const pass = document.getElementById('signup-password').value;
+    if(!displayName){ document.getElementById('signup-error').textContent='⚠️ Please enter a display name.'; return; }
+    try {
+      const uc = await auth.createUserWithEmailAndPassword(email, pass);
+      await db.collection('users').doc(uc.user.uid).set({ displayName, emoji: '😊' });
+    } catch(e){ document.getElementById('signup-error').textContent = '⚠️ ' + e.message; }
+  };
+
+  // quick anonymous demo sign-in for testing
+  const anonBtn = document.getElementById('anon-button');
+  if(anonBtn) anonBtn.onclick = async () => {
+    try {
+      await auth.signInAnonymously();
+      // create a small profile doc so UI works
+      const u = auth.currentUser;
+      if(u) await db.collection('users').doc(u.uid).set({ displayName: 'Demo user', emoji: '😊' }, { merge:true });
+    } catch(e){
+      console.warn('Anon login failed', e);
+    }
+  };
+
+  logoutBtn.onclick = async ()=>{ await auth.signOut(); };
+
+  profileBtn.onclick = ()=>{ profileModal.style.display='flex'; };
+  closeProfileBtn.onclick = ()=>{ profileModal.style.display='none'; };
+
+  emojiOptions.forEach(e => {
+    e.onclick = () => {
+      emojiOptions.forEach(em => em.style.border = 'none');
+      e.style.border = '2px solid rgba(150,120,100,0.6)';
+      selectedEmoji = e.textContent;
+    };
   });
-  setActiveFromData();
-  const computeAverageText=()=>{ const values=Object.values(coworkerData.ratings||{}); if(!values.length) return "Average Rating: N/A"; const avgVal=(values.reduce((a,b)=>a+b,0)/values.length).toFixed(1); return `Average Rating: ⭐ ${avgVal} (${values.length})`; };
-  const avg=document.createElement("div"); avg.className="average"; avg.textContent=computeAverageText(); container.appendChild(avg);
 
-  const commentsDiv=document.createElement("div"); commentsDiv.className="comments";
-  const renderComments=()=>{ commentsDiv.innerHTML=""; coworkerData.comments.forEach((c,idx)=>{ const div=document.createElement("div"); div.className="comment"; div.innerHTML=`<div><strong>${c.emoji||"😊"} ${c.user}</strong> <small>${new Date(c.time).toLocaleString()}</small><br>${c.text}</div>`; if(c.user===currentUser){ const delBtn=document.createElement("button"); delBtn.className="delete-comment"; delBtn.textContent="🗑️"; delBtn.onclick=async()=>{ coworkerData.comments.splice(idx,1); await saveCoworker(name,coworkerData); }; div.appendChild(delBtn); } commentsDiv.appendChild(div); }); };
-  renderComments(); container.appendChild(commentsDiv);
+  saveProfileBtn.onclick = async () => {
+    const user = auth.currentUser;
+    const newName = document.getElementById('profile-display-name').value.trim();
+    if(!user) return alert('Not logged in!');
+    if(!newName && !selectedEmoji) return alert('Please enter a display name or choose an emoji!');
+    const userRef = db.collection('users').doc(user.uid);
+    const previous = (await userRef.get()).data() || {};
+    const updatedName = newName || previous.displayName;
+    const updatedEmoji = selectedEmoji || previous.emoji || '😊';
+    await userRef.set({ displayName: updatedName, emoji: updatedEmoji }, { merge:true });
+    // update profile display immediately
+    profileNameEl.textContent = updatedName;
+    profileEmoji.textContent = updatedEmoji;
+    // update cache so comments render with new emoji immediately
+    userCache[user.uid] = { displayName: updatedName, emoji: updatedEmoji };
+    profileModal.style.display = 'none';
+    alert('✅ Profile updated!');
+  };
 
-  const commentInput=document.createElement("div"); commentInput.className="comment-input"; commentInput.innerHTML=`<input type="text" placeholder="Add a comment..." /><button>Post</button>`; const inputField=commentInput.querySelector("input"); const postBtn=commentInput.querySelector("button");
-  postBtn.onclick=async()=>{ const text=inputField.value.trim(); if(!text) return; const time=new Date().toISOString(); coworkerData.comments.push({ user:currentUser, emoji:emoji, text, time }); inputField.value=""; await saveCoworker(name,coworkerData); };
-  container.appendChild(commentInput);
+  /************************************************************************
+   * Auth state listener -> load app
+   ************************************************************************/
+  auth.onAuthStateChanged(async (user) => {
+    if(user){
+      // fetch user's profile document
+      const userDoc = await db.collection('users').doc(user.uid).get();
+      const userData = userDoc.exists ? userDoc.data() : {};
+      const displayName = userData.displayName || (user.email || 'Anonymous');
+      const emoji = userData.emoji || '😊';
 
-  db.collection("coworkers").doc(name).onSnapshot((doc)=>{ const data=doc.data(); if(!data) return; coworkerData=data; coworkerData.ratings=coworkerData.ratings||{}; coworkerData.comments=coworkerData.comments||[]; setActiveFromData(); avg.textContent=computeAverageText(); renderComments(); });
+      // show top profile
+      if(profileDisplay){ profileDisplay.style.display = 'flex'; profileNameEl.textContent = displayName; profileEmoji.textContent = emoji; }
 
-  coworkerList.appendChild(container);
-}
+      // cache current user profile
+      userCache[user.uid] = { displayName, emoji };
 
-// Starry background animation
+      // start app with uid (use uid for ratings and comments to keep identity stable)
+      startApp(user.uid, displayName, emoji);
+    } else {
+      // show login
+      if(loginPage) loginPage.classList.remove('hidden');
+      if(signupPage) signupPage.classList.add('hidden');
+      if(appDiv) appDiv.style.display = 'none';
+      if(profileDisplay) profileDisplay.style.display = 'none';
+    }
+  });
+
+  /************************************************************************
+   * App logic: use uid as currentUserId, preserve sort by createdAt desc
+   * Coworker docs will be cached to enable Search filtering client-side.
+   ************************************************************************/
+  function startApp(currentUid, displayName, emoji){
+    // show the main area
+    if(loginPage) loginPage.classList.add('hidden');
+    if(signupPage) signupPage.classList.add('hidden');
+    if(appDiv) appDiv.style.display = 'block';
+
+    // wire Add top
+    addTop.onclick = async () => {
+      const name = addNameTop.value.trim();
+      if(!name) return;
+      // use reduce chance of collisions: set doc id as sanitized name
+      const id = name.replace(/[.#$\/\[\]]/g,'_');
+      await db.collection('coworkers').doc(id).set({ displayName: name, ratings:{}, comments:[], createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+      addNameTop.value = '';
+    };
+
+    // snapshot listener - store docs in coworkerDocsCache and render
+    db.collection('coworkers').orderBy('createdAt','desc').onSnapshot(snapshot => {
+      coworkerDocsCache = []; // reset
+      snapshot.forEach(doc => {
+        const data = doc.data() || {};
+        // keep id and displayName for rendering; if displayName missing, use id
+        const displayName = data.displayName || doc.id;
+        coworkerDocsCache.push({ id: doc.id, data: data });
+      });
+      renderCoworkerList(currentUid, emoji);
+    });
+
+    // search behavior (search button)
+    searchBtn.onclick = () => {
+      currentSearch = searchInput.value.trim().toLowerCase();
+      renderCoworkerList(currentUid, emoji);
+    };
+    clearSearch.onclick = () => {
+      currentSearch = '';
+      searchInput.value = '';
+      renderCoworkerList(currentUid, emoji);
+    };
+  }
+
+  /************************************************************************
+   * Render function: iterates coworkerDocsCache (already sorted by createdAt desc)
+   * Applies the currentSearch partial-match filter
+   ************************************************************************/
+  function renderCoworkerList(currentUid, currentEmoji){
+    gridWrap.innerHTML = '';
+    // iterate docs in order (already sorted most recent first)
+    coworkerDocsCache.forEach(docItem => {
+      const name = (docItem.data && docItem.data.displayName) ? docItem.data.displayName : docItem.id;
+      // apply search filter if present
+      if(currentSearch){
+        if(!name.toLowerCase().includes(currentSearch) && !docItem.id.toLowerCase().includes(currentSearch)) return;
+      }
+      createRatingCard(name, docItem.data, currentUid, currentEmoji, docItem.id);
+    });
+  }
+
+  /************************************************************************
+   * Save/Delete helpers
+   ************************************************************************/
+  async function saveCoworkerDoc(docId, data){ await db.collection('coworkers').doc(docId).set(data); }
+  async function deleteCoworkerDoc(docId, displayName){ if(!confirm(`Delete ${displayName || docId}?`)) return; await db.collection('coworkers').doc(docId).delete(); }
+
+  /************************************************************************
+   * User lookup helper for comments rendering
+   * caches (reduce reads)
+   ************************************************************************/
+  async function getUserProfile(uid){
+    if(!uid) return null;
+    if(userCache[uid]) return userCache[uid];
+    try {
+      const doc = await db.collection('users').doc(uid).get();
+      const d = doc.exists ? doc.data() : null;
+      if(d){ userCache[uid] = { displayName: d.displayName || uid, emoji: d.emoji || '😊' }; return userCache[uid]; }
+      return { displayName: uid, emoji: '😊' };
+    } catch(e){
+      return { displayName: uid, emoji: '😊' };
+    }
+  }
+
+  /************************************************************************
+   * Create rating card function (renders card, sets up listeners)
+   * Uses UID for ratings & comments going forward.
+   ************************************************************************/
+  function createRatingCard(displayName, coworkerData = { ratings:{}, comments:[] }, currentUid, currentEmoji, docId) {
+    // docId is the document id in firestore (if not provided, infer from displayName)
+    const effectiveDocId = docId || displayName.replace(/[.#$\/\[\]]/g,'_');
+
+    // ensure shapes
+    coworkerData = coworkerData || {};
+    coworkerData.ratings = coworkerData.ratings || {};
+    coworkerData.comments = coworkerData.comments || [];
+    coworkerData.displayName = coworkerData.displayName || displayName;
+
+    // container
+    const container = document.createElement('div');
+    container.className = 'coworker';
+
+    // header
+    const header = document.createElement('div'); header.className='coworker-header';
+    const title = document.createElement('div'); title.className='coworker-name'; title.textContent = coworkerData.displayName;
+    const removeBtn = document.createElement('button'); removeBtn.className='remove-btn'; removeBtn.innerText = '✖';
+    removeBtn.onclick = () => deleteCoworkerDoc(effectiveDocId, coworkerData.displayName);
+    header.appendChild(title); header.appendChild(removeBtn);
+    container.appendChild(header);
+
+    // rating stars
+    const ratingDiv = document.createElement('div'); ratingDiv.className='rating';
+    container.appendChild(ratingDiv);
+
+    const stars = [];
+    for(let i=1;i<=5;i++){
+      const lbl = document.createElement('label');
+      lbl.textContent = '★';
+      lbl.dataset.value = i;
+      ratingDiv.appendChild(lbl);
+      stars.push(lbl);
+    }
+
+    // helper to set active based on data (ratings keyed by uid)
+    const setActiveFromData = () => {
+      const userRating = coworkerData.ratings && coworkerData.ratings[currentUid] ? coworkerData.ratings[currentUid] : 0;
+      stars.forEach((s, idx) => s.classList.toggle('active', idx < userRating));
+    };
+
+    // hover & click handlers
+    stars.forEach((s, idx) => {
+      s.addEventListener('mouseenter', ()=>{ stars.forEach((st,i)=>st.classList.toggle('hovered', i<=idx)); });
+      s.addEventListener('mouseleave', ()=>{ stars.forEach(st=>st.classList.remove('hovered')); });
+      s.addEventListener('click', async ()=>{
+        const val = idx + 1;
+        if(!coworkerData.ratings) coworkerData.ratings = {};
+        if(coworkerData.ratings[currentUid] === val) { delete coworkerData.ratings[currentUid]; }
+        else { coworkerData.ratings[currentUid] = val; }
+        setActiveFromData();
+        avgEl.textContent = computeAverageText();
+        await saveCoworkerDoc(effectiveDocId, coworkerData);
+      });
+    });
+    setActiveFromData();
+
+    // average & count
+    const avgEl = document.createElement('div'); avgEl.className='average';
+    const computeAverageText = () => {
+      const vals = Object.values(coworkerData.ratings || {});
+      if(!vals.length) return 'Average Rating: N/A';
+      // ensure numbers
+      const numeric = vals.map(v => Number(v) || 0);
+      const avg = (numeric.reduce((a,b)=>a+b,0) / numeric.length).toFixed(1);
+      return `Average Rating: ⭐ ${avg} (${numeric.length})`;
+    };
+    avgEl.textContent = computeAverageText();
+    container.appendChild(avgEl);
+
+    // comments area
+    const commentsDiv = document.createElement('div'); commentsDiv.className='comments';
+    container.appendChild(commentsDiv);
+
+    // render comments with user profiles (uid-aware)
+    const renderComments = async () => {
+      commentsDiv.innerHTML = '';
+      for(let i=0;i<(coworkerData.comments||[]).length;i++){
+        const c = coworkerData.comments[i];
+        const commentRow = document.createElement('div'); commentRow.className='comment';
+
+        // c.user might be a uid (new) or legacy displayName string
+        let displayUser = c.user;
+        let displayEmoji = c.emoji || '😊';
+        if(typeof c.user === 'string' && c.user.length >= 20 && c.user.indexOf(':') === -1) {
+          const prof = await getUserProfile(c.user);
+          displayUser = prof.displayName || c.user;
+          displayEmoji = prof.emoji || displayEmoji;
+        }
+
+        // build inner HTML
+        const left = document.createElement('div');
+        const timeText = c.time ? new Date(c.time).toLocaleString() : '';
+        left.innerHTML = `<strong>${escapeHtml(displayEmoji)} ${escapeHtml(displayUser)}</strong> <small>${escapeHtml(timeText)}</small><div style="margin-top:6px;">${escapeHtml(c.text)}</div>`;
+        commentRow.appendChild(left);
+
+        // delete if comment authored by currentUid
+        if(c.user === currentUid){
+          const delBtn = document.createElement('button');
+          delBtn.className = 'delete-comment';
+          delBtn.textContent = '🗑️';
+          delBtn.onclick = async () => {
+            coworkerData.comments.splice(i,1);
+            await saveCoworkerDoc(effectiveDocId, coworkerData);
+          };
+          commentRow.appendChild(delBtn);
+        }
+        commentsDiv.appendChild(commentRow);
+      }
+    };
+    renderComments();
+
+    // comment input
+    const commentInputRow = document.createElement('div'); commentInputRow.className='comment-input';
+    commentInputRow.innerHTML = '<input placeholder="Add a comment..." /><button>Post</button>';
+    const commentInputEl = commentInputRow.querySelector('input');
+    const commentPostBtn = commentInputRow.querySelector('button');
+    commentPostBtn.onclick = async () => {
+      const text = commentInputEl.value.trim();
+      if(!text) return;
+      const time = new Date().toISOString();
+      // push with uid so future profile changes reflect
+      const uId = auth.currentUser ? auth.currentUser.uid : 'anon';
+      if(!coworkerData.comments) coworkerData.comments = [];
+      coworkerData.comments.push({ user: uId, emoji: currentEmoji, text, time });
+      commentInputEl.value = '';
+      await saveCoworkerDoc(effectiveDocId, coworkerData);
+    };
+    container.appendChild(commentInputRow);
+
+    // listen to live updates on the coworker doc and update UI parts
+    const unsub = db.collection('coworkers').doc(effectiveDocId).onSnapshot(async (doc) => {
+      const data = doc.exists ? doc.data() : null;
+      if(!data) {
+        unsub && typeof unsub === 'function' && unsub();
+        return;
+      }
+      coworkerData = data;
+      coworkerData.ratings = coworkerData.ratings || {};
+      coworkerData.comments = coworkerData.comments || [];
+      setActiveFromData();
+      avgEl.textContent = computeAverageText();
+      await renderComments();
+    });
+
+    // append to grid
+    gridWrap.appendChild(container);
+  }
+
+  /************************************************************************
+   * Utility: escape for safety in innerHTML building
+   ************************************************************************/
+  function escapeHtml(str){
+    if(str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+
+ // Starry background animation
 const canvas = document.getElementById('stars-canvas');
 const ctx = canvas.getContext('2d');
 let width, height;
@@ -373,14 +705,14 @@ function resizeCanvas(){ width=canvas.width=window.innerWidth; height=canvas.hei
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-const stars=[], starCount=150, shootingStars=[];
+const stars=[], starCount=500, shootingStars=[];
 for(let i=0;i<starCount;i++){ stars.push({ x:Math.random()*width, y:Math.random()*height, r:Math.random()*1.5+0.5, alpha:Math.random() }) }
 
 function drawStars(){
   ctx.clearRect(0,0,width,height);
   stars.forEach(s=>{
     ctx.beginPath();
-    ctx.arc(s.x,s.y,s.r,0,2*Math.PI);
+    ctx.arc(s.x,s.y,s.r,0,20*Math.PI);
     ctx.fillStyle=`rgba(255,255,255,${s.alpha})`;
     ctx.fill();
   });
@@ -402,6 +734,26 @@ function spawnShootingStar(){ shootingStars.push({ x:Math.random()*width, y:0, d
 setInterval(spawnShootingStar, 4000);
 function animate(){ drawStars(); requestAnimationFrame(animate); }
 animate();
+    profileBtn.onclick = async () => {
+  const user = auth.currentUser;
+  if(!user) return;
+
+  // fetch current profile from cache (or Firestore if missing)
+  let profile = userCache[user.uid];
+  if(!profile){
+    const doc = await db.collection('users').doc(user.uid).get();
+    profile = doc.exists ? doc.data() : { displayName: '', emoji: '😊' };
+    userCache[user.uid] = profile;
+  }
+
+  // Prefill input and highlight current emoji
+  document.getElementById('profile-display-name').value = profile.displayName || '';
+  selectedEmoji = null; // reset selection
+  emojiOptions.forEach(em => em.style.border = em.textContent === profile.emoji ? '2px solid rgba(150,120,100,0.6)' : 'none');
+
+  profileModal.style.display = 'flex';
+};
+
 </script>
 </body>
 </html>
